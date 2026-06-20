@@ -101,6 +101,7 @@ model Website {
   products       Product[]
   leads          Lead[]
   orders         Order[]
+  analytics      AnalyticsEvent[]
   versions       PublishVersion[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
@@ -246,4 +247,20 @@ model Subscription {
   updatedAt          DateTime         @updatedAt
 
   @@index([userId])
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  websiteId String
+  website   Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  type      String
+  path      String?
+  referrer  String?
+  visitorId String?
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  @@index([websiteId])
+  @@index([type])
+  @@index([createdAt])
 }

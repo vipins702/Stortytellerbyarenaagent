@@ -203,3 +203,104 @@ Example:
 ```
 
 The public renderer reads the published DB website, page sections, products and Blob assets.
+
+## Production Layer Added
+
+### Clerk-ready auth
+
+`lib/auth.ts` now checks for Clerk environment variables and mirrors the Clerk user into the `User` table. If Clerk env vars are missing, it falls back to the configured dev DB user so Vercel previews remain usable.
+
+Required Clerk env when enabling real auth:
+
+```env
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=""
+CLERK_SECRET_KEY=""
+```
+
+### Stripe Billing
+
+Added:
+
+```txt
+POST /api/billing/checkout
+POST /api/billing/portal
+POST /api/stripe/webhook
+```
+
+Required Stripe env:
+
+```env
+STRIPE_SECRET_KEY=""
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=""
+STRIPE_WEBHOOK_SECRET=""
+STRIPE_PRO_PRICE_ID=""
+STRIPE_BUSINESS_PRICE_ID=""
+```
+
+The billing page now opens Stripe Checkout for Pro/Business and includes a customer portal action.
+
+### Product CRUD
+
+`/cms/products` now has a real DB-backed CRUD UI:
+
+- create product
+- edit product
+- delete product
+- status, stock, SKU, price and description
+
+APIs:
+
+```txt
+POST   /api/websites/:websiteId/products
+PATCH  /api/products/:productId
+DELETE /api/products/:productId
+```
+
+### Asset Library
+
+Added:
+
+```txt
+/assets
+```
+
+Features:
+
+- Vercel Blob file uploads
+- image and GLB/GLTF support
+- Gemini image generation into Blob
+- DB Asset records
+
+### Version History
+
+Added:
+
+```txt
+/versions
+GET  /api/websites/:websiteId/versions
+POST /api/versions/:versionId/restore
+```
+
+Publishing creates `PublishVersion` snapshots. Versions can be restored back into draft pages.
+
+### First-party Analytics
+
+Added `AnalyticsEvent` model and:
+
+```txt
+/analytics
+GET  /api/websites/:websiteId/analytics
+POST /api/websites/:websiteId/analytics
+```
+
+Published sites now track page views and lead-submit events.
+
+### Published lead capture
+
+Published site route:
+
+```txt
+/s/:slug
+```
+
+The lead form now posts real leads to DB and tracks analytics events.
