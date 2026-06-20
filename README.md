@@ -1101,3 +1101,66 @@ Run:
 npm run db:generate
 npm run db:push
 ```
+
+## Step-level retry, streaming progress and generation history
+
+### Step-level retry
+
+Added step-specific retry endpoint:
+
+```txt
+POST /api/generation-jobs/:jobId/steps/:stepName/retry
+```
+
+Supported job types:
+
+- website generation
+- image generation
+
+For image jobs, upload/save retries resume from the nearest reproducible step because raw image buffers are not persisted. The generated asset remains linked to the job after a successful retry.
+
+### Streaming progress UI
+
+Added Server-Sent Events endpoint:
+
+```txt
+GET /api/generation-jobs/:jobId/stream
+```
+
+The builder now creates a queued job before starting generation, opens a live EventSource stream and shows active progress while the job runs.
+
+The progress panel displays:
+
+- job status
+- current step
+- completed step count
+- live progress bar
+
+### Generation history page
+
+Added:
+
+```txt
+/generations
+```
+
+This page shows recent generation jobs with:
+
+- job type
+- prompt
+- status
+- error messages
+- step list
+- linked assets
+- retry whole job
+- retry failed step
+
+### Updated APIs
+
+```txt
+POST /api/generation-jobs
+GET  /api/generation-jobs
+GET  /api/generation-jobs/:jobId/stream
+POST /api/generation-jobs/:jobId/retry
+POST /api/generation-jobs/:jobId/steps/:stepName/retry
+```

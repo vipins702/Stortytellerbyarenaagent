@@ -39,6 +39,7 @@ export function VisualBuilder({ website, page, products, assets, definitions }: 
   const [status, setStatus] = useState("Saved from database");
   const [localAssets, setLocalAssets] = useState<Asset[]>(assets || []);
   const [jobs, setJobs] = useState<GenerationJob[]>([]);
+  const [activeJob, setActiveJob] = useState<GenerationJob | null>(null);
 
   function buildSection(type: string): BuilderSection {
     const definition = definitions.find((item) => item.type === type);
@@ -62,6 +63,23 @@ export function VisualBuilder({ website, page, products, assets, definitions }: 
     const res = await fetch(`/api/generation-jobs?websiteId=${website.id}`);
     const json = await res.json();
     if (res.ok) setJobs(json.data);
+  }
+  async function createJob(type: string, prompt: string, metadata: Record<string, unknown> = {}) {
+    const res = await fetch("/api/generation-jobs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId: website.id, type, prompt, metadata }) });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || "Unable to create generation job");
+    return json.data as GenerationJob;
+  }
+  function watchJob(jobId: string) {
+    const source = new EventSource(`/api/generation-jobs/${jobId}/stream`);
+    source.addEventListener("progress", (event) => {
+      const job = JSON.parse((event as MessageEvent).data) as GenerationJob;
+      setActiveJob(job);
+      setStatus(`${job.type} generation: ${job.status}${job.currentStep ? ` · ${job.currentStep}` : ""}`);
+    });
+    source.addEventListener("done", () => { source.close(); loadJobs().catch(() => null); });
+    source.addEventListener("error", () => { source.close(); loadJobs().catch(() => null); });
+    return source;
   }
   useEffect(() => { loadJobs().catch(() => null); }, [website.id]);
   async function retryJob(jobId: string) {
@@ -107,8 +125,11 @@ export function VisualBuilder({ website, page, products, assets, definitions }: 
     const imagePrompt = window.prompt("Describe the premium image asset", `Luxury editorial hero image for ${siteName}`);
     if (!imagePrompt) return;
     setStatus("Generating image with Gemini and saving to Vercel Blob…");
-    const res = await fetch("/api/ai/image", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: imagePrompt, websiteId: website.id }) });
+    const job = await createJob("image", imagePrompt, { source: "builder-image" });
+    const stream = watchJob(job.id);
+    const res = await fetch("/api/ai/image", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: imagePrompt, websiteId: website.id, jobId: job.id }) });
     const json = await res.json();
+    stream.close();
     if (res.ok) { if (json.data.asset) setLocalAssets((current) => [json.data.asset, ...current]); setStatus(`Image saved: ${json.data.url}`); await loadJobs(); } else { setStatus(json.error || "Image generation failed"); await loadJobs(); }
   }
   async function generateFromScene(file: File) {
@@ -131,9 +152,12 @@ export function VisualBuilder({ website, page, products, assets, definitions }: 
   }
   async function generate() {
     setStatus("Generating via API…");
-    const res = await fetch("/api/ai/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: aiPrompt, industry: "Luxury retail", websiteId: website.id }) });
+    const job = await createJob("website", aiPrompt, { industry: "Luxury retail", source: "builder-site" });
+    const stream = watchJob(job.id);
+    const res = await fetch("/api/ai/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: aiPrompt, industry: "Luxury retail", websiteId: website.id, jobId: job.id }) });
     const json = await res.json();
-    if (!res.ok) { setStatus(json.error || "AI failed"); return; }
+    stream.close();
+    if (!res.ok) { setStatus(json.error || "AI failed"); await loadJobs(); return; }
     setSections(json.data.sections);
     setSiteName(json.data.name);
     setAiOpen(false);
@@ -150,7 +174,7 @@ export function VisualBuilder({ website, page, products, assets, definitions }: 
       <div className="grid gap-4 xl:grid-cols-[280px_1fr_290px]">
         <Card className="p-4"><h2 className="mb-4 font-black">Component metadata</h2><div className="grid gap-3">{definitions.map((item) => <button key={item.type} draggable onDragStart={(e) => e.dataTransfer.setData("section", item.type)} onClick={() => add(item.type)} className="rounded-3xl border border-black/10 bg-white/70 p-4 text-left transition hover:border-gold/50"><b>{item.label}</b><p className="mt-1 text-sm text-charcoal/55">{item.description}</p><p className="mt-2 text-[11px] font-black uppercase tracking-widest text-gold">{item.category || "Section"}</p></button>)}</div></Card>
         <Card className="min-h-[720px] overflow-hidden p-3"><div onDragOver={(e) => e.preventDefault()} onDrop={(e) => add(e.dataTransfer.getData("section") || "hero")} className="min-h-[690px] rounded-[24px] border border-black/10 bg-white p-3">{sections.length === 0 && <div className="rounded-3xl border border-dashed border-gold/60 bg-gold/5 p-8 text-center font-bold text-[#765813]">No sections yet. Add from metadata library.</div>}{sections.map((section, index) => <CanvasSection key={section.id} section={section} index={index} update={update} remove={remove} move={move} products={products} assets={localAssets} />)}<div className="mt-3 rounded-3xl border border-dashed border-gold/60 bg-gold/5 p-5 text-center text-sm font-bold text-[#765813]">Drop API component here</div></div></Card>
-        <Card className="p-4"><h2 className="mb-4 font-black">Website metadata</h2><label className="text-xs font-black uppercase tracking-widest text-charcoal/45">Website name</label><input value={siteName} onChange={(e) => setSiteName(e.target.value)} className="mt-2 w-full rounded-2xl border border-black/10 bg-white/75 px-4 py-3" /><div className="mt-5"><p className="text-xs font-black uppercase tracking-widest text-charcoal/45">Theme from DB</p><pre className="mt-3 max-h-44 overflow-auto rounded-2xl bg-charcoal p-4 text-xs text-cream">{JSON.stringify(website.theme, null, 2)}</pre></div><div className="mt-5 rounded-3xl border border-black/10 bg-white/65 p-4"><b>Vercel Blob assets</b><p className="mt-2 text-sm text-charcoal/55">Upload images or GLB/GLTF models. Files are stored in Vercel Blob and indexed in DB.</p><input className="mt-3 text-sm" type="file" accept="image/*,video/mp4,video/webm,.glb,.gltf" onChange={(e) => e.target.files?.[0] && startTransition(() => uploadAsset(e.target.files![0], "builder"))} /><Button className="mt-3 w-full" variant="light" onClick={() => startTransition(generateHeroImage)}>Generate image with Gemini</Button></div><GenerationHistory jobs={jobs} onRetry={(id) => startTransition(() => retryJob(id))} /></Card>
+        <Card className="p-4"><h2 className="mb-4 font-black">Website metadata</h2><label className="text-xs font-black uppercase tracking-widest text-charcoal/45">Website name</label><input value={siteName} onChange={(e) => setSiteName(e.target.value)} className="mt-2 w-full rounded-2xl border border-black/10 bg-white/75 px-4 py-3" /><div className="mt-5"><p className="text-xs font-black uppercase tracking-widest text-charcoal/45">Theme from DB</p><pre className="mt-3 max-h-44 overflow-auto rounded-2xl bg-charcoal p-4 text-xs text-cream">{JSON.stringify(website.theme, null, 2)}</pre></div><div className="mt-5 rounded-3xl border border-black/10 bg-white/65 p-4"><b>Vercel Blob assets</b><p className="mt-2 text-sm text-charcoal/55">Upload images or GLB/GLTF models. Files are stored in Vercel Blob and indexed in DB.</p><input className="mt-3 text-sm" type="file" accept="image/*,video/mp4,video/webm,.glb,.gltf" onChange={(e) => e.target.files?.[0] && startTransition(() => uploadAsset(e.target.files![0], "builder"))} /><Button className="mt-3 w-full" variant="light" onClick={() => startTransition(generateHeroImage)}>Generate image with Gemini</Button></div><ActiveGenerationProgress job={activeJob} /><GenerationHistory jobs={jobs} onRetry={(id) => startTransition(() => retryJob(id))} /></Card>
       </div>
       {aiOpen && <div className="fixed inset-0 z-50 grid place-items-center bg-black/45 p-4 backdrop-blur-xl"><Card className="w-full max-w-2xl p-6"><div className="flex justify-between gap-4"><h2 className="font-serif text-4xl font-black tracking-[-.04em]">AI Website Generator</h2><Button variant="ghost" onClick={() => setAiOpen(false)}>Close</Button></div><textarea value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} rows={5} placeholder="Luxury skincare storefront with product cards, gallery and lead capture…" className="mt-5 w-full rounded-3xl border border-black/10 bg-white/75 p-4" /><p className="mt-3 text-sm text-charcoal/55">Generation returns editable section metadata that can be saved to your page.</p><div className="mt-4 rounded-3xl border border-black/10 bg-white/60 p-4"><b>Convert a scene or screenshot</b><p className="mt-1 text-sm text-charcoal/55">Upload a reference image and turn it into editable sections.</p><input className="mt-3 text-sm" type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && startTransition(() => generateFromScene(e.target.files![0]))} /></div><Button className="mt-5" variant="gold" disabled={isPending} onClick={() => startTransition(generate)}>{isPending ? "Working…" : "Generate website"}</Button></Card></div>}
     </div>
@@ -254,4 +278,12 @@ function GalleryEditor({ section, props, assets, update }: { section: BuilderSec
 
 function GenerationHistory({ jobs, onRetry }: { jobs: GenerationJob[]; onRetry: (id: string) => void }) {
   return <div className="mt-5 rounded-3xl border border-black/10 bg-white/65 p-4"><div className="flex items-center justify-between gap-3"><b>Generation checkpoints</b><span className="text-xs font-bold text-charcoal/45">{jobs.length}</span></div><p className="mt-1 text-sm text-charcoal/55">Failed jobs keep completed steps and saved assets. Retry resumes from the recorded prompt.</p><div className="mt-3 grid max-h-80 gap-2 overflow-auto">{jobs.map((job) => <div key={job.id} className="rounded-2xl border border-black/10 bg-white/75 p-3"><div className="flex items-center justify-between gap-2"><b className="truncate text-sm">{job.type}</b><span className={`rounded-full px-2 py-1 text-[10px] font-black ${job.status === "Completed" ? "bg-green-100 text-green-700" : job.status === "Failed" ? "bg-red-100 text-red-700" : "bg-gold/20 text-[#765813]"}`}>{job.status}</span></div><p className="mt-1 line-clamp-2 text-xs text-charcoal/55">{job.prompt}</p>{job.currentStep && <p className="mt-1 text-[11px] text-charcoal/40">Step: {job.currentStep}</p>}{job.error && <p className="mt-1 text-[11px] text-red-700">{job.error}</p>}<div className="mt-2 flex items-center justify-between"><span className="text-[11px] text-charcoal/40">{job.steps?.length || 0} steps · {job.assets?.length || 0} assets</span>{job.status === "Failed" && <button onClick={() => onRetry(job.id)} className="rounded-full bg-charcoal px-3 py-1 text-xs font-bold text-white">Retry</button>}</div></div>)}</div>{!jobs.length && <p className="mt-3 rounded-2xl bg-white/60 p-3 text-sm text-charcoal/50">No generation jobs yet.</p>}</div>;
+}
+
+
+function ActiveGenerationProgress({ job }: { job: GenerationJob | null }) {
+  if (!job || ["Completed", "Failed"].includes(job.status)) return null;
+  const completed = job.steps?.filter((step) => step.status === "Completed").length || 0;
+  const total = Math.max(job.steps?.length || 1, 1);
+  return <div className="mt-5 rounded-3xl border border-gold/30 bg-gold/10 p-4"><div className="flex items-center justify-between"><b>Live progress</b><span className="text-xs font-black text-[#765813]">{job.status}</span></div><p className="mt-1 text-sm text-charcoal/60">{job.currentStep || "Starting"}</p><div className="mt-3 h-2 overflow-hidden rounded-full bg-white"><div className="h-full bg-gold transition-all" style={{ width: `${Math.round((completed / total) * 100)}%` }} /></div><p className="mt-2 text-xs text-charcoal/45">{completed}/{total} completed steps</p></div>;
 }
