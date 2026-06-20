@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Aurelia AI — Premium Website Builder MVP</title>
+  <meta name="description" content="A premium AI-powered website builder SaaS MVP: AI generation, visual builder, templates, CMS, e-commerce and billing prototype." />
+  <style>
+    :root{
+      --cream:#F8F6F0; --cream-2:#fffdf7; --gold:#D4AF37; --gold-2:#f2d77d; --ink:#1a1a1a; --muted:#69645c;
+      --line:rgba(26,26,26,.10); --glass:rgba(255,255,255,.64); --shadow:0 24px 80px rgba(26,26,26,.12);
+      --radius:24px; --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --serif: "Playfair Display", Georgia, Cambria, serif;
+    }
+    *{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--sans);overflow-x:hidden}
+    body:before{content:"";position:fixed;inset:-20%;z-index:-3;background:
+      radial-gradient(circle at 10% 10%, rgba(212,175,55,.24), transparent 25%),
+      radial-gradient(circle at 88% 18%, rgba(255,255,255,.95), transparent 26%),
+      radial-gradient(circle at 45% 92%, rgba(212,175,55,.16), transparent 32%),linear-gradient(135deg,#fffdf7,#f2eadc 48%,#fff);}
+    body:after{content:"";position:fixed;inset:0;z-index:-2;background-image:linear-gradient(rgba(26,26,26,.035) 1px, transparent 1px),linear-gradient(90deg, rgba(26,26,26,.035) 1px, transparent 1px);background-size:54px 54px;mask-image:linear-gradient(to bottom,black,transparent 75%)}
+    button,input,textarea,select{font:inherit} button{cursor:pointer} a{color:inherit;text-decoration:none}.hidden{display:none!important}.serif{font-family:var(--serif)}
+    .topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:16px 28px;border-bottom:1px solid var(--line);backdrop-filter:blur(18px);background:rgba(248,246,240,.76)}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:850;letter-spacing:-.04em}.logo{width:38px;height:38px;border-radius:14px;background:linear-gradient(145deg,#1a1a1a,#3b3426);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 14px 30px rgba(212,175,55,.22);position:relative}.logo:after{content:"✦";position:absolute;inset:0;display:grid;place-items:center;color:var(--gold);font-size:18px}.nav{display:flex;gap:8px;align-items:center}.nav button,.ghost{border:1px solid transparent;background:transparent;border-radius:999px;padding:10px 14px;color:var(--muted)}.nav button.active,.nav button:hover,.ghost:hover{background:rgba(255,255,255,.7);border-color:var(--line);color:var(--ink)}
+    .btn{border:0;border-radius:999px;padding:12px 18px;font-weight:750;background:var(--ink);color:#fff;box-shadow:0 18px 42px rgba(26,26,26,.18);display:inline-flex;gap:9px;align-items:center;justify-content:center}.btn.gold{background:linear-gradient(135deg,var(--gold),#9d7417);color:#fff}.btn.light{background:rgba(255,255,255,.82);color:var(--ink);border:1px solid var(--line);box-shadow:none}.btn.small{padding:8px 12px;font-size:13px}.btn.danger{background:#3a1717}.pill{display:inline-flex;gap:8px;align-items:center;border:1px solid rgba(212,175,55,.35);background:rgba(255,255,255,.6);border-radius:999px;padding:8px 12px;color:#6a5014;font-size:13px;font-weight:700}.gold-text{background:linear-gradient(135deg,#b88a12,#f3d87f,#8f6910);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .page{display:none;min-height:calc(100vh - 72px)}.page.active{display:block}.container{width:min(1180px,calc(100% - 40px));margin:0 auto}.hero{padding:76px 0 46px;display:grid;grid-template-columns:1.05fr .95fr;gap:34px;align-items:center}.hero h1{font-family:var(--serif);font-size:clamp(46px,7vw,86px);line-height:.92;letter-spacing:-.06em;margin:18px 0}.lead{font-size:19px;line-height:1.72;color:var(--muted);max-width:680px}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:34px}.stat,.card{border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(18px);border-radius:var(--radius);box-shadow:var(--shadow)}.stat{padding:18px}.stat b{font-size:26px}.stat span{display:block;color:var(--muted);font-size:13px;margin-top:4px}.demo-window{position:relative;padding:14px;border-radius:32px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.9);box-shadow:0 34px 100px rgba(26,26,26,.16)}.browser{border-radius:24px;overflow:hidden;background:#fff;border:1px solid var(--line)}.browser-top{height:44px;background:#111;display:flex;align-items:center;gap:7px;padding:0 16px}.dot{width:10px;height:10px;border-radius:50%;background:#ff6b6b}.dot:nth-child(2){background:#ffd166}.dot:nth-child(3){background:#06d6a0}.preview-hero{min-height:420px;padding:36px;background:linear-gradient(145deg,#fff,#f7efe0);position:relative;overflow:hidden}.orb{position:absolute;border-radius:50%;filter:blur(1px);animation:float 6s ease-in-out infinite}.orb.one{width:170px;height:170px;background:radial-gradient(circle,#f3d87f,transparent 68%);right:30px;top:30px}.orb.two{width:110px;height:110px;background:radial-gradient(circle,#111,transparent 70%);right:170px;bottom:20px;animation-delay:-2s}.mini-card{position:relative;z-index:1;margin-top:28px;display:grid;grid-template-columns:1fr 1fr;gap:12px}.mini-card div{height:94px;border-radius:18px;background:rgba(255,255,255,.62);border:1px solid var(--line);box-shadow:0 16px 44px rgba(26,26,26,.08)}@keyframes float{50%{transform:translateY(-16px) rotate(4deg)}}
+    .section-title{display:flex;align-items:end;justify-content:space-between;gap:20px;margin:52px 0 18px}.section-title h2{font-family:var(--serif);font-size:42px;letter-spacing:-.04em;margin:0}.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.feature{padding:22px;min-height:178px}.icon{width:42px;height:42px;border-radius:15px;background:linear-gradient(135deg,rgba(212,175,55,.25),rgba(255,255,255,.7));display:grid;place-items:center;margin-bottom:16px}.feature h3{margin:0 0 8px}.feature p,.muted{color:var(--muted);line-height:1.65}.pricing{padding-bottom:70px}.price{padding:26px}.price.featured{border-color:rgba(212,175,55,.5);box-shadow:0 24px 80px rgba(212,175,55,.16)}.amount{font-size:42px;font-weight:850;letter-spacing:-.05em}.amount small{font-size:15px;color:var(--muted)}
+    .app-layout{display:grid;grid-template-columns:250px 1fr;min-height:calc(100vh - 72px)}.sidebar{padding:20px;border-right:1px solid var(--line);background:rgba(255,255,255,.42);backdrop-filter:blur(14px)}.side-title{font-size:12px;text-transform:uppercase;letter-spacing:.13em;color:var(--muted);font-weight:850;margin:18px 10px 8px}.side-nav{display:grid;gap:6px}.side-nav button{border:1px solid transparent;background:transparent;border-radius:16px;text-align:left;padding:12px;color:var(--muted);display:flex;gap:10px;align-items:center}.side-nav button.active,.side-nav button:hover{background:rgba(255,255,255,.75);border-color:var(--line);color:var(--ink)}.workspace{padding:24px;overflow:hidden}.app-view{display:none}.app-view.active{display:block}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.toolbar h1{font-family:var(--serif);font-size:38px;margin:0;letter-spacing:-.04em}.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.site-card{padding:18px;cursor:pointer;transition:.2s}.site-card:hover{transform:translateY(-3px);box-shadow:0 30px 80px rgba(26,26,26,.14)}.thumb{height:150px;border-radius:18px;background:linear-gradient(145deg,#fff,#eee3cf);border:1px solid var(--line);overflow:hidden;padding:14px}.thumb-lines{display:grid;gap:8px;margin-top:20px}.thumb-lines i{display:block;height:10px;border-radius:99px;background:rgba(26,26,26,.10)}.thumb-lines i:nth-child(1){width:70%}.thumb-lines i:nth-child(2){width:92%}.thumb-lines i:nth-child(3){width:55%}.badge{border-radius:999px;padding:5px 9px;background:rgba(212,175,55,.16);color:#7a5b12;font-size:12px;font-weight:800}
+    .builder-grid{display:grid;grid-template-columns:280px minmax(0,1fr) 300px;gap:14px;height:calc(100vh - 142px)}.panel{border:1px solid var(--line);background:rgba(255,255,255,.64);backdrop-filter:blur(18px);border-radius:24px;box-shadow:0 20px 70px rgba(26,26,26,.08);overflow:hidden;min-height:0}.panel-head{padding:14px 16px;border-bottom:1px solid var(--line);font-weight:850;display:flex;justify-content:space-between;align-items:center}.panel-body{padding:14px;overflow:auto;max-height:calc(100% - 50px)}.component{border:1px solid var(--line);background:#fff;border-radius:18px;padding:14px;margin-bottom:10px;cursor:grab;display:flex;justify-content:space-between;align-items:center}.component:hover{border-color:rgba(212,175,55,.55);box-shadow:0 12px 34px rgba(212,175,55,.12)}.canvas-wrap{padding:14px;background:rgba(26,26,26,.04)}.canvas{height:100%;overflow:auto;border-radius:20px;background:#fff;border:1px solid var(--line);padding:0;box-shadow:inset 0 0 0 12px rgba(248,246,240,.35)}.drop-hint{margin:14px;border:1px dashed rgba(212,175,55,.65);border-radius:18px;padding:16px;text-align:center;color:#7a5b12;background:rgba(212,175,55,.06)}.canvas-section{position:relative;margin:14px;border:1px solid rgba(26,26,26,.08);border-radius:20px;overflow:hidden;background:#fff}.section-controls{position:absolute;right:10px;top:10px;z-index:5;display:flex;gap:6px;opacity:0;transition:.2s}.canvas-section:hover .section-controls{opacity:1}.section-controls button{border:0;border-radius:10px;padding:6px 8px;background:rgba(26,26,26,.75);color:#fff;font-size:12px}.editable{outline:2px solid transparent;border-radius:6px}.editable:focus{outline-color:rgba(212,175,55,.5);background:rgba(212,175,55,.08)}.render-hero{padding:70px 56px;background:linear-gradient(135deg,#fff,#f8f0df);min-height:300px}.render-hero h2{font-family:var(--serif);font-size:58px;line-height:.96;letter-spacing:-.05em;margin:0 0 16px}.render-features,.render-gallery,.render-products{padding:44px 56px}.render-features .items{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.render-features .items div,.product-tile{border:1px solid var(--line);border-radius:18px;padding:18px;background:#fff}.render-gallery .gallery-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:12px}.ph-img{height:180px;border-radius:18px;background:linear-gradient(135deg,#e8dcc6,#fff 45%,#d4af37);position:relative;overflow:hidden}.ph-img:after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-100%);animation:shimmer 3s infinite}@keyframes shimmer{to{transform:translateX(100%)}}.render-products .prod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.model-box{height:120px;border-radius:16px;background:radial-gradient(circle at 45% 30%,#f5d770,#3e321a 45%,#151515 70%);margin-bottom:12px}.field{display:grid;gap:7px;margin-bottom:12px}.field label{font-size:12px;font-weight:850;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}.field input,.field textarea,.field select{width:100%;border:1px solid var(--line);background:rgba(255,255,255,.85);border-radius:14px;padding:12px;color:var(--ink)}.swatches{display:flex;gap:8px;flex-wrap:wrap}.swatch{width:34px;height:34px;border-radius:999px;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer}.swatch.active{box-shadow:0 0 0 3px rgba(212,175,55,.55)}
+    table{width:100%;border-collapse:separate;border-spacing:0 10px}th{text-align:left;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;padding:0 12px}td{background:rgba(255,255,255,.72);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:14px 12px}td:first-child{border-left:1px solid var(--line);border-radius:16px 0 0 16px}td:last-child{border-right:1px solid var(--line);border-radius:0 16px 16px 0}.split{display:grid;grid-template-columns:1fr 360px;gap:16px}.template-card{overflow:hidden}.template-img{height:190px;background:linear-gradient(135deg,#141414,#4a3817 58%,#f6dc82);position:relative}.template-card .copy{padding:18px}.modal-backdrop{position:fixed;inset:0;z-index:100;background:rgba(26,26,26,.45);backdrop-filter:blur(10px);display:none;place-items:center;padding:20px}.modal-backdrop.active{display:grid}.modal{width:min(720px,100%);border:1px solid rgba(255,255,255,.7);background:rgba(248,246,240,.92);border-radius:30px;box-shadow:0 40px 120px rgba(0,0,0,.3);overflow:hidden}.modal-head{padding:20px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.modal-body{padding:22px}.progress{height:10px;border-radius:99px;background:rgba(26,26,26,.08);overflow:hidden}.bar{height:100%;width:0;background:linear-gradient(90deg,var(--gold),#111);transition:.4s}.toast{position:fixed;right:20px;bottom:20px;z-index:200;display:grid;gap:10px}.toast div{padding:12px 14px;border-radius:16px;background:#111;color:#fff;box-shadow:0 18px 60px rgba(0,0,0,.25)}
+    .cursor-trail{position:fixed;width:12px;height:12px;border-radius:50%;background:rgba(212,175,55,.35);pointer-events:none;z-index:999;filter:blur(2px);animation:fade .7s forwards}@keyframes fade{to{opacity:0;transform:scale(3)}}
+    @media (max-width:1050px){.hero,.split{grid-template-columns:1fr}.grid-3,.cards{grid-template-columns:1fr 1fr}.builder-grid{grid-template-columns:1fr;height:auto}.builder-grid .panel{min-height:260px}.canvas{height:640px}.app-layout{grid-template-columns:1fr}.sidebar{position:sticky;top:72px;z-index:20;border-right:0;border-bottom:1px solid var(--line)}.side-nav{grid-template-columns:repeat(4,1fr)}}
+    @media (max-width:720px){.topbar{padding:12px;gap:8px}.nav{display:none}.container{width:min(100% - 24px,1180px)}.hero{padding-top:42px}.stats,.grid-3,.cards,.render-features .items,.render-products .prod-grid,.render-gallery .gallery-grid{grid-template-columns:1fr}.render-hero,.render-features,.render-gallery,.render-products{padding:34px 24px}.render-hero h2{font-size:42px}.side-nav{grid-template-columns:1fr 1fr}.toolbar{align-items:start;flex-direction:column}.section-title{display:block}.modal{border-radius:22px}}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" onclick="showPage('landing')"><span class="logo"></span><span>Aurelia <span class="gold-text">AI</span></span></a>
+    <nav class="nav" aria-label="Main navigation">
+      <button class="top-link active" data-page="landing" onclick="showPage('landing')">Home</button>
+      <button class="top-link" data-page="app" onclick="showPage('app'); showApp('dashboard')">Dashboard</button>
+      <button class="top-link" data-page="app" onclick="showPage('app'); showApp('builder')">Builder</button>
+      <button class="top-link" data-page="app" onclick="showPage('app'); showApp('templates')">Templates</button>
+    </nav>
+    <button class="btn gold" onclick="showPage('app'); showApp('builder'); openAIModal()">Generate with AI</button>
+  </header>
+
+  <main id="landing" class="page active">
+    <section class="container hero">
+      <div>
+        <span class="pill">✦ MVP build · Apple × Webflow × Shopify</span>
+        <h1>Launch premium websites with an AI-first studio.</h1>
+        <p class="lead">Aurelia AI turns a prompt into an editable luxury website, then lets founders manage products, leads, templates and publishing from one calm dashboard.</p>
+        <div class="actions">
+          <button class="btn gold" onclick="showPage('app'); showApp('builder'); openAIModal()">Start from AI prompt</button>
+          <button class="btn light" onclick="showPage('app'); showApp('builder')">Open visual builder</button>
+        </div>
+        <div class="stats">
+          <div class="stat"><b>30s</b><span>simulated AI generation</span></div>
+          <div class="stat"><b>4</b><span>MVP template families</span></div>
+          <div class="stat"><b>CMS</b><span>products, orders, leads</span></div>
+        </div>
+      </div>
+      <div class="demo-window" aria-label="Product preview">
+        <div class="browser">
+          <div class="browser-top"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <div class="preview-hero">
+            <div class="orb one"></div><div class="orb two"></div>
+            <span class="pill">Luxury skincare template</span>
+            <h2 class="serif" style="font-size:52px;line-height:.98;letter-spacing:-.05em;margin:28px 0 12px">A storefront that feels handcrafted.</h2>
+            <p class="muted">Gold shimmer, glass cards, smooth reveals and a built-in product CMS.</p>
+            <div class="mini-card"><div></div><div></div><div></div><div></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="container">
+      <div class="section-title"><h2>What is included in this MVP</h2><p class="muted">Focused scope first. Built to be extended into full SaaS.</p></div>
+      <div class="grid-3">
+        <article class="card feature"><div class="icon">⌘</div><h3>Visual builder</h3><p>Add hero, feature, gallery and product sections. Edit text inline, reorder, delete and preview instantly.</p></article>
+        <article class="card feature"><div class="icon">✦</div><h3>AI generator</h3><p>Prompt-based site generation with industry-aware templates, progress states and editable output.</p></article>
+        <article class="card feature"><div class="icon">◈</div><h3>Mini CMS</h3><p>Manage products, simulated orders, lead submissions and status tracking from a premium dashboard.</p></article>
+      </div>
+    </section>
+    <section class="container pricing">
+      <div class="section-title"><h2>Monetization-ready plans</h2><p class="muted">Pricing UI and plan rules prepared for Stripe integration.</p></div>
+      <div class="grid-3">
+        <div class="card price"><span class="badge">Free</span><h3>Starter</h3><div class="amount">$0</div><p class="muted">2 websites, basic templates, Aurelia watermark.</p><button class="btn light">Current plan</button></div>
+        <div class="card price featured"><span class="badge">Most popular</span><h3>Pro</h3><div class="amount">$29<small>/mo</small></div><p class="muted">10 websites, custom domain, AI credits, all templates.</p><button class="btn gold">Upgrade</button></div>
+        <div class="card price"><span class="badge">Scale</span><h3>Business</h3><div class="amount">$99<small>/mo</small></div><p class="muted">Unlimited, white-label, team seats, priority support.</p><button class="btn light">Contact sales</button></div>
+      </div>
+    </section>
+  </main>
+
+  <main id="app" class="page">
+    <div class="app-layout">
+      <aside class="sidebar">
+        <div class="side-title">Workspace</div>
+        <div class="side-nav">
+          <button class="app-link active" data-view="dashboard" onclick="showApp('dashboard')">▦ Dashboard</button>
+          <button class="app-link" data-view="builder" onclick="showApp('builder')">✣ Builder</button>
+          <button class="app-link" data-view="cms" onclick="showApp('cms')">◉ CMS</button>
+          <button class="app-link" data-view="templates" onclick="showApp('templates')">✦ Templates</button>
+          <button class="app-link" data-view="settings" onclick="showApp('settings')">⚙ Settings</button>
+        </div>
+        <div class="side-title">Quick actions</div>
+        <button class="btn gold" style="width:100%" onclick="showApp('builder'); openAIModal()">AI generate</button>
+        <button class="btn light" style="width:100%;margin-top:10px" onclick="publishSite()">Publish demo</button>
+      </aside>
+      <section class="workspace">
+        <div id="dashboard" class="app-view active">
+          <div class="toolbar"><div><h1>My Websites</h1><p class="muted">Manage MVP websites, publish states and recent activity.</p></div><button class="btn gold" onclick="showApp('builder'); resetCanvas(); toast('Blank canvas created')">New website</button></div>
+          <div class="cards" id="siteCards"></div>
+          <div class="section-title"><h2>Activity</h2></div>
+          <div class="card" style="padding:16px"><table><tbody><tr><td>New lead captured</td><td><span class="badge">2m ago</span></td></tr><tr><td>Product “Noir Lamp” inventory updated</td><td><span class="badge">18m ago</span></td></tr><tr><td>Website version auto-saved</td><td><span class="badge">Today</span></td></tr></tbody></table></div>
+        </div>
+
+        <div id="builder" class="app-view">
+          <div class="toolbar"><div><h1>Visual Builder</h1><p class="muted">Drag sections into the canvas or click to add. Text is editable inline.</p></div><div class="actions" style="margin:0"><button class="btn light" onclick="exportCode()">Export code</button><button class="btn gold" onclick="publishSite()">Publish</button></div></div>
+          <div class="builder-grid">
+            <div class="panel"><div class="panel-head">Component library</div><div class="panel-body" id="componentLibrary"></div></div>
+            <div class="panel canvas-wrap"><div id="canvas" class="canvas" ondragover="event.preventDefault()" ondrop="dropSection(event)"></div></div>
+            <div class="panel"><div class="panel-head">Design system</div><div class="panel-body">
+              <div class="field"><label>Website name</label><input id="siteName" value="Maison Lumière" oninput="saveSiteName()"></div>
+              <div class="field"><label>Luxury color presets</label><div class="swatches"><button class="swatch active" style="background:#D4AF37" onclick="setAccent('#D4AF37',this)"></button><button class="swatch" style="background:#C89B7B" onclick="setAccent('#C89B7B',this)"></button><button class="swatch" style="background:#8B7DFF" onclick="setAccent('#8B7DFF',this)"></button><button class="swatch" style="background:#111" onclick="setAccent('#111111',this)"></button></div></div>
+              <div class="field"><label>Font pairing</label><select onchange="toast('Font pairing saved: '+this.value)"><option>Playfair Display + Inter</option><option>Cormorant + Satoshi</option><option>Libre Baskerville + Geist</option></select></div>
+              <div class="field"><label>Animation style</label><select onchange="toast('Animation timeline updated')"><option>Luxury smooth reveal</option><option>Parallax editorial</option><option>Subtle minimal</option><option>Particle shimmer</option></select></div>
+              <div class="card" style="padding:14px;box-shadow:none"><b>3D model uploader</b><p class="muted" style="font-size:13px">MVP placeholder for GLB/GLTF upload. Production integration: Uploadthing/Cloudinary + React Three Fiber viewer.</p><input type="file" accept=".glb,.gltf" onchange="toast('3D model queued: '+(this.files[0]?.name||''))"></div>
+            </div></div>
+          </div>
+        </div>
+
+        <div id="cms" class="app-view">
+          <div class="toolbar"><div><h1>Mini CMS</h1><p class="muted">Products, orders and leads for the selected website.</p></div><button class="btn gold" onclick="addProductPrompt()">Add product</button></div>
+          <div class="split">
+            <div class="card" style="padding:16px"><h3>Products</h3><table><thead><tr><th>Name</th><th>Price</th><th>Stock</th><th></th></tr></thead><tbody id="productRows"></tbody></table></div>
+            <div class="card" style="padding:16px"><h3>Lead capture</h3><div class="field"><label>Name</label><input id="leadName" placeholder="Ada Lovelace"></div><div class="field"><label>Email</label><input id="leadEmail" placeholder="ada@company.com"></div><button class="btn gold" onclick="addLead()">Simulate lead</button><hr style="border:0;border-top:1px solid var(--line);margin:18px 0"><div id="leadList"></div></div>
+          </div>
+          <div class="section-title"><h2>Orders</h2><button class="btn light" onclick="cycleOrders()">Advance statuses</button></div>
+          <div class="card" style="padding:16px"><table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead><tbody id="orderRows"></tbody></table></div>
+        </div>
+
+        <div id="templates" class="app-view">
+          <div class="toolbar"><div><h1>Template Gallery</h1><p class="muted">Premium starting points with animation and e-commerce presets.</p></div><button class="btn gold" onclick="openAIModal()">Smart select with AI</button></div>
+          <div class="grid-3" id="templateGrid"></div>
+        </div>
+
+        <div id="settings" class="app-view">
+          <div class="toolbar"><div><h1>Settings & Billing</h1><p class="muted">MVP controls for team, domains, billing and analytics.</p></div></div>
+          <div class="grid-3">
+            <div class="card feature"><h3>Team collaboration</h3><p class="muted">Invite designers, editors and billing managers.</p><div class="field"><input placeholder="teammate@studio.com"></div><button class="btn light" onclick="toast('Invite email queued')">Invite</button></div>
+            <div class="card feature"><h3>Custom domain</h3><p class="muted">Production path: DNS verification, SSL and edge routing.</p><div class="field"><input placeholder="www.brand.com"></div><button class="btn light" onclick="toast('Domain verification started')">Connect</button></div>
+            <div class="card feature"><h3>Analytics</h3><p class="muted">Built-in events plus GA4/PostHog integration later.</p><button class="btn light" onclick="toast('Analytics event copied')">Copy tracking snippet</button></div>
+          </div>
+          <div class="section-title"><h2>Billing plans</h2></div><div class="grid-3 pricing"><div class="card price"><h3>Free</h3><div class="amount">$0</div><p class="muted">2 websites · watermark</p></div><div class="card price featured"><h3>Pro</h3><div class="amount">$29<small>/mo</small></div><p class="muted">10 sites · custom domain</p></div><div class="card price"><h3>Business</h3><div class="amount">$99<small>/mo</small></div><p class="muted">Unlimited · white-label</p></div></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="aiModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="aiTitle">
+    <div class="modal"><div class="modal-head"><h2 id="aiTitle" class="serif" style="margin:0">AI Website Generator</h2><button class="ghost" onclick="closeAIModal()">Close</button></div><div class="modal-body">
+      <div class="field"><label>Describe your website</label><textarea id="aiPrompt" rows="5" placeholder="Example: A luxury skincare storefront for botanical serums with product cards, soft gold animations and lead capture."></textarea></div>
+      <div class="field"><label>Industry</label><select id="industry"><option>Luxury retail</option><option>SaaS</option><option>Restaurant</option><option>Interior design</option><option>Fashion</option><option>Wellness</option></select></div>
+      <div class="field"><label>Scene/image upload → website inspiration</label><input type="file" accept="image/*" onchange="toast('Image inspiration attached: '+(this.files[0]?.name||''))"></div>
+      <div class="progress"><div id="aiBar" class="bar"></div></div><p id="aiStatus" class="muted">Ready to generate a polished editable website.</p>
+      <div class="actions"><button class="btn gold" onclick="generateAIWebsite()">Generate website</button><button class="btn light" onclick="usePromptExample()">Use example prompt</button></div>
+    </div></div>
+  </div>
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const components = [
+      {type:'hero', label:'Hero', desc:'Premium headline and CTA'},
+      {type:'features', label:'Features', desc:'Three glass feature cards'},
+      {type:'gallery', label:'Gallery', desc:'Parallax image grid'},
+      {type:'products', label:'Product cards', desc:'E-commerce showcase'}
+    ];
+    const templates = [
+      ['Maison Retail','Luxury product storefront','products'],['Linear SaaS','Minimal conversion site','features'],['Atelier Portfolio','Scroll storytelling gallery','gallery'],['Wellness Launch','Lead capture and packages','hero'],['Interior Studio','Editorial parallax showroom','gallery'],['3D Product Drop','Model-viewer product reveal','products']
+    ];
+    let state = JSON.parse(localStorage.getItem('aureliaMvp')||'null') || {
+      siteName:'Maison Lumière', accent:'#D4AF37', published:false,
+      sections:[{type:'hero',title:'Maison Lumière',body:'A luminous luxury storefront generated by Aurelia AI.'},{type:'features'},{type:'products'}],
+      products:[{name:'Noir Lamp',price:240,stock:14},{name:'Champagne Chair',price:890,stock:6},{name:'Silk Serum',price:76,stock:33}],
+      leads:[{name:'Sophia Chen',email:'sophia@luxe.co',time:'Today'}],
+      orders:[{id:'#1007',customer:'Olivia Hart',total:'$316',status:'Paid'},{id:'#1008',customer:'Milan Reed',total:'$890',status:'Packing'},{id:'#1009',customer:'Nora Vale',total:'$76',status:'Shipped'}]
+    };
+    function persist(){localStorage.setItem('aureliaMvp',JSON.stringify(state));renderAll()}
+    function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.top-link').forEach(b=>b.classList.toggle('active',b.dataset.page===id))}
+    function showApp(id){showPage('app');document.querySelectorAll('.app-view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.app-link').forEach(b=>b.classList.toggle('active',b.dataset.view===id)); if(id==='builder') renderCanvas();}
+    function toast(msg){const t=document.createElement('div');t.textContent=msg;document.getElementById('toast').appendChild(t);setTimeout(()=>t.remove(),3200)}
+    function sectionData(type){return {type,title:type==='hero'?state.siteName:type[0].toUpperCase()+type.slice(1),body:'Edit this premium copy inline. Add your strongest value proposition here.'}}
+    function renderLibrary(){componentLibrary.innerHTML=components.map(c=>`<div class="component" draggable="true" ondragstart="event.dataTransfer.setData('type','${c.type}')" onclick="addSection('${c.type}')"><div><b>${c.label}</b><div class="muted" style="font-size:12px">${c.desc}</div></div><span>＋</span></div>`).join('')}
+    function addSection(type){state.sections.push(sectionData(type));persist();showApp('builder');toast(type+' section added')}
+    function dropSection(e){addSection(e.dataTransfer.getData('type')||'hero')}
+    function moveSection(i,dir){const j=i+dir;if(j<0||j>=state.sections.length)return;[state.sections[i],state.sections[j]]=[state.sections[j],state.sections[i]];persist()}
+    function removeSection(i){state.sections.splice(i,1);persist();toast('Section removed')}
+    function updateSection(i,key,value){state.sections[i][key]=value;localStorage.setItem('aureliaMvp',JSON.stringify(state))}
+    function controls(i){return `<div class="section-controls"><button onclick="moveSection(${i},-1)">↑</button><button onclick="moveSection(${i},1)">↓</button><button onclick="removeSection(${i})">×</button></div>`}
+    function renderSection(s,i){
+      if(s.type==='hero') return `<section class="canvas-section">${controls(i)}<div class="render-hero"><span class="pill">AI-generated launch page</span><h2 class="editable" contenteditable oninput="updateSection(${i},'title',this.innerText)">${s.title||state.siteName}</h2><p class="lead editable" contenteditable oninput="updateSection(${i},'body',this.innerText)">${s.body||'Premium copy for your new website.'}</p><button class="btn gold">Shop collection</button></div></section>`;
+      if(s.type==='features') return `<section class="canvas-section">${controls(i)}<div class="render-features"><h2 class="serif editable" contenteditable oninput="updateSection(${i},'title',this.innerText)">${s.title||'Designed to convert beautifully'}</h2><div class="items"><div><b>AI layouts</b><p class="muted">Industry-smart page structure.</p></div><div><b>Luxury motion</b><p class="muted">Shimmers, reveals and parallax.</p></div><div><b>Commerce ready</b><p class="muted">Products, cart and leads.</p></div></div></div></section>`;
+      if(s.type==='gallery') return `<section class="canvas-section">${controls(i)}<div class="render-gallery"><h2 class="serif">Editorial gallery</h2><div class="gallery-grid"><div class="ph-img" style="height:260px"></div><div class="ph-img"></div><div class="ph-img"></div></div></div></section>`;
+      return `<section class="canvas-section">${controls(i)}<div class="render-products"><h2 class="serif">Featured products</h2><div class="prod-grid">${state.products.slice(0,3).map(p=>`<div class="product-tile"><div class="model-box"></div><b>${p.name}</b><p class="muted">$${p.price} · ${p.stock} in stock</p><button class="btn small light">Add to cart</button></div>`).join('')}</div></div></section>`;
+    }
+    function renderCanvas(){if(!state.sections.length){canvas.innerHTML='<div class="drop-hint">Drop sections here or select from the component library.</div>';return} canvas.innerHTML=state.sections.map(renderSection).join('')+'<div class="drop-hint">Drag another section here</div>'}
+    function setAccent(color,el){state.accent=color;document.documentElement.style.setProperty('--gold',color);document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('active'));el.classList.add('active');persist();toast('Color preset updated')}
+    function saveSiteName(){state.siteName=document.getElementById('siteName').value;persist()}
+    function resetCanvas(){state.sections=[];persist()}
+    function openAIModal(){document.getElementById('aiModal').classList.add('active')}
+    function closeAIModal(){document.getElementById('aiModal').classList.remove('active')}
+    function usePromptExample(){aiPrompt.value='A luxury skincare storefront for botanical serums with a cinematic hero, shimmering gold accents, product cards, lead capture and soft editorial gallery.'}
+    function generateAIWebsite(){
+      const prompt=aiPrompt.value.trim()||'Premium luxury brand website'; const industry=document.getElementById('industry').value; let n=0; aiBar.style.width='0%'; aiStatus.textContent='Reading prompt and selecting a '+industry+' template…';
+      const timer=setInterval(()=>{n+=20; aiBar.style.width=n+'%'; aiStatus.textContent=['Selecting template…','Writing conversion copy…','Creating product sections…','Applying luxury motion…','Finalizing editable canvas…'][Math.min(4,n/20-1)]; if(n>=100){clearInterval(timer); state.siteName=industry==='SaaS'?'Aurelia Cloud':'Maison '+industry.split(' ')[0]; state.sections=[{type:'hero',title:state.siteName,body:prompt},{type:'features',title:'Everything your customers need'},{type:'gallery'},{type:'products'}]; document.getElementById('siteName').value=state.siteName; persist(); closeAIModal(); showApp('builder'); toast('AI website generated and ready to edit')}} ,420)
+    }
+    function renderProducts(){productRows.innerHTML=state.products.map((p,i)=>`<tr><td><b>${p.name}</b></td><td>$${p.price}</td><td>${p.stock}</td><td><button class="btn small light" onclick="editProduct(${i})">Edit</button> <button class="btn small danger" onclick="deleteProduct(${i})">Delete</button></td></tr>`).join('')}
+    function addProductPrompt(){const name=prompt('Product name'); if(!name)return; const price=Number(prompt('Price', '99')||99); const stock=Number(prompt('Stock','10')||10); state.products.push({name,price,stock});persist();toast('Product added')}
+    function editProduct(i){const p=state.products[i]; const stock=Number(prompt('Update stock',p.stock)||p.stock); p.stock=stock;persist();toast('Inventory updated')}
+    function deleteProduct(i){state.products.splice(i,1);persist();toast('Product deleted')}
+    function addLead(){const name=leadName.value||'New Lead'; const email=leadEmail.value||'lead@example.com'; state.leads.unshift({name,email,time:'Just now'}); leadName.value=''; leadEmail.value=''; persist(); toast('Lead notification sent')}
+    function renderLeads(){leadList.innerHTML=state.leads.map(l=>`<div style="padding:12px 0;border-bottom:1px solid var(--line)"><b>${l.name}</b><div class="muted">${l.email} · ${l.time}</div></div>`).join('')}
+    function renderOrders(){orderRows.innerHTML=state.orders.map(o=>`<tr><td><b>${o.id}</b></td><td>${o.customer}</td><td>${o.total}</td><td><span class="badge">${o.status}</span></td></tr>`).join('')}
+    function cycleOrders(){const flow=['Paid','Packing','Shipped','Delivered']; state.orders.forEach(o=>o.status=flow[(flow.indexOf(o.status)+1)%flow.length]);persist();toast('Order statuses advanced')}
+    function renderTemplates(){templateGrid.innerHTML=templates.map(t=>`<article class="card template-card"><div class="template-img"></div><div class="copy"><span class="badge">${t[2]}</span><h3>${t[0]}</h3><p class="muted">${t[1]}</p><button class="btn light" onclick="state.sections=[sectionData('hero'),sectionData('${t[2]}'),sectionData('products')];persist();showApp('builder');toast('Template applied')">Use template</button></div></article>`).join('')}
+    function renderSites(){siteCards.innerHTML=[state.siteName,'Atelier Preview','Serum Launch'].map((name,i)=>`<article class="card site-card" onclick="showApp('builder')"><div class="thumb"><span class="badge">${i===0&&state.published?'Published':'Draft'}</span><div class="thumb-lines"><i></i><i></i><i></i></div></div><h3>${name}</h3><p class="muted">${i===0?state.sections.length:3} sections · Updated today</p></article>`).join('')}
+    function publishSite(){state.published=true;persist();toast('Published to https://'+state.siteName.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.aurelia.site')}
+    function exportCode(){const code='<!-- Static export demo -->\n'+canvas.innerHTML; navigator.clipboard?.writeText(code); toast('Current page HTML copied to clipboard')}
+    function renderAll(){document.documentElement.style.setProperty('--gold',state.accent); const sn=document.getElementById('siteName'); if(sn)sn.value=state.siteName; renderLibrary(); renderCanvas(); renderProducts(); renderLeads(); renderOrders(); renderTemplates(); renderSites()}
+    document.addEventListener('mousemove',e=>{if(window.innerWidth<900)return; const d=document.createElement('span'); d.className='cursor-trail'; d.style.left=e.clientX+'px'; d.style.top=e.clientY+'px'; document.body.appendChild(d); setTimeout(()=>d.remove(),700)});
+    renderAll();
+  </script>
+</body>
+</html>
