@@ -796,3 +796,109 @@ Inside the visual builder, scroll story sections now support:
 The builder loads `Asset` records with the selected website and keeps newly uploaded/generated assets available immediately in the builder session.
 
 This makes scroll storytelling practical for tenants without requiring manual URL copy/paste.
+
+## Broad refinement pass completed
+
+### Custom domain host routing
+
+Added middleware host detection and a DB-backed resolver route:
+
+```txt
+/host-sites/:host
+```
+
+When a request arrives on a configured custom domain, middleware rewrites the request to the host resolver. The resolver reads `Domain.hostname` from the database and renders the matching published website.
+
+### First-class product variants
+
+Added Prisma model:
+
+```txt
+ProductVariant
+```
+
+Products now support variants with:
+
+- name
+- SKU
+- variant price
+- variant stock
+- metadata
+
+The existing product metadata variant field remains as a fallback, but checkout and inventory can now use real variant records.
+
+### Variant-aware checkout and inventory
+
+Storefront checkout now accepts:
+
+```json
+{
+  "items": [
+    { "productId": "...", "variantId": "...", "quantity": 1 }
+  ]
+}
+```
+
+After successful checkout, Stripe webhook handling decrements variant stock when a variant was purchased, otherwise it decrements product stock.
+
+### Product detail pages
+
+Added:
+
+```txt
+/s/:slug/products/:productSlug
+```
+
+Product pages include:
+
+- product media
+- long description
+- variant selector
+- buy button
+- Product JSON-LD structured data
+
+### 3D model viewer
+
+Added:
+
+```txt
+components/published/ModelViewer.tsx
+```
+
+Published `model3d` sections now render GLB/GLTF files with React Three Fiber and Drei when an asset URL is present. The viewer includes orbit controls, auto rotation and environment lighting.
+
+### A/B visitor bucketing
+
+Added:
+
+```txt
+components/published/ABVariantGate.tsx
+```
+
+Published sites now assign a stable variant to visitors using browser storage and cookies, then track assignment events. The server can read the cookie on later visits to render the assigned variant.
+
+### Health and monitoring scaffolding
+
+Added:
+
+```txt
+GET /api/health
+instrumentation.ts
+```
+
+The health endpoint checks database connectivity. `instrumentation.ts` is ready for Sentry wiring when `@sentry/nextjs` is added.
+
+### Test scaffolding
+
+Added Playwright smoke test scaffolding:
+
+```txt
+tests/e2e/smoke.spec.ts
+npm run test:e2e
+```
+
+Install browsers before running locally:
+
+```bash
+npx playwright install
+```

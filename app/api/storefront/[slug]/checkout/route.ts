@@ -5,19 +5,22 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 
-const schema = z.object({ items: z.array(z.object({ productId: z.string(), quantity: z.number().int().min(1).max(99) })).min(1) });
+const schema = z.object({ items: z.array(z.object({ productId: z.string(), variantId: z.string().optional(), quantity: z.number().int().min(1).max(99) })).min(1) });
 
 export async function POST(request: Request, { params }: { params: { slug: string } }) {
   try {
     const input = schema.parse(await request.json());
     const website = await prisma.website.findUnique({ where: { slug: params.slug }, include: { owner: true } });
     if (!website || website.status !== "Published") return NextResponse.json({ error: "Storefront not available" }, { status: 404 });
-    const products = await prisma.product.findMany({ where: { websiteId: website.id, id: { in: input.items.map((i) => i.productId) }, status: "Active" } });
+    const products = await prisma.product.findMany({ where: { websiteId: website.id, id: { in: input.items.map((i) => i.productId) }, status: "Active" }, include: { variants: true } });
     const line_items = input.items.map((item) => {
       const product = products.find((p) => p.id === item.productId);
       if (!product) throw new Error("Invalid product");
-      if (product.stock < item.quantity) throw new Error(`${product.name} does not have enough stock.`);
-      return { quantity: item.quantity, price_data: { currency: product.currency, unit_amount: product.price, product_data: { name: product.name, description: product.description || undefined, images: (product.metadata as any)?.imageUrl ? [(product.metadata as any).imageUrl] : undefined } } };
+      const variant = item.variantId ? product.variants.find((v) => v.id === item.variantId) : null;
+      const stock = variant ? variant.stock : product.stock;
+      if (stock < item.quantity) throw new Error(`${product.name}${variant ? ` · ${variant.name}` : ""} does not have enough stock.`);
+      const amount = variant?.price ?? product.price;
+      return { quantity: item.quantity, price_data: { currency: product.currency, unit_amount: amount, product_data: { name: variant ? `${product.name} · ${variant.name}` : product.name, description: product.description || undefined, images: (product.metadata as any)?.imageUrl ? [(product.metadata as any).imageUrl] : undefined } } };
     });
     const origin = request.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const stripe = getStripe();

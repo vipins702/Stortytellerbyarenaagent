@@ -37,7 +37,9 @@ export async function POST(request: Request) {
         });
         await sendEmail({ to: order.website.owner.email, subject: `New order from ${order.website.name}`, html: orderEmailHtml({ websiteName: order.website.name, customerName: order.customerName, total: `${order.currency.toUpperCase()} ${(order.total / 100).toFixed(2)}` }) }).catch(() => null);
         for (const item of items) {
-          if (item.productId && item.quantity) {
+          if (item.variantId && item.quantity) {
+            await prisma.productVariant.updateMany({ where: { id: item.variantId, product: { websiteId }, stock: { gte: Number(item.quantity) } }, data: { stock: { decrement: Number(item.quantity) } } });
+          } else if (item.productId && item.quantity) {
             await prisma.product.updateMany({ where: { id: item.productId, websiteId, stock: { gte: Number(item.quantity) } }, data: { stock: { decrement: Number(item.quantity) } } });
           }
         }

@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { PublishedRenderer } from "@/components/published/PublishedRenderer";
 import { prisma } from "@/lib/prisma";
 import { ABTracker } from "@/components/published/ABTracker";
+import { ABVariantGate } from "@/components/published/ABVariantGate";
+import { cookies } from "next/headers";
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const website = await prisma.website.findUnique({ where: { slug: params.slug }, include: { pages: { take: 1 } } });
@@ -29,7 +31,8 @@ export default async function PublishedSitePage({ params }: { params: { slug: st
     hasOfferCatalog: website.products.length ? { "@type": "OfferCatalog", name: `${website.name} Products`, itemListElement: website.products.map((product) => ({ "@type": "Offer", itemOffered: { "@type": "Product", name: product.name, description: product.description || product.name }, price: product.price / 100, priceCurrency: product.currency.toUpperCase() })) } : undefined
   };
   const activeTest = website.abTests[0];
-  const variant = activeTest?.variants.sort((a, b) => b.weight - a.weight)[0];
+  const cookieVariantId = activeTest ? cookies().get(`ab:${activeTest.id}`)?.value : undefined;
+  const variant = activeTest?.variants.find((item) => item.id === cookieVariantId) || activeTest?.variants.sort((a, b) => b.weight - a.weight)[0];
   const sections = variant?.sections && Array.isArray(variant.sections) && variant.sections.length ? variant.sections as any[] : website.pages[0].sections as any[];
-  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />{activeTest && variant && <ABTracker websiteId={website.id} testId={activeTest.id} variantId={variant.id} />}<PublishedRenderer website={website} page={{ sections }} products={website.products} assets={website.assets} /></>;
+  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />{activeTest && variant && <><ABVariantGate websiteId={website.id} testId={activeTest.id} variants={activeTest.variants.map((v) => ({ id: v.id, name: v.name, weight: v.weight }))} /><ABTracker websiteId={website.id} testId={activeTest.id} variantId={variant.id} /></>}<PublishedRenderer website={website} page={{ sections }} products={website.products as any} assets={website.assets} /></>;
 }
