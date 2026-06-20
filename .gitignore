@@ -9,3 +9,7 @@ build
 .prisma
 
 tsconfig.tsbuildinfo
+
+.npm
+.config
+.cache
