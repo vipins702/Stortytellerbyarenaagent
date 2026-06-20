@@ -902,3 +902,120 @@ Install browsers before running locally:
 ```bash
 npx playwright install
 ```
+
+## Deep refinement pass completed
+
+### Product variant table UI
+
+The product manager now has a real variant table interface with:
+
+- add variant row
+- remove variant row
+- variant name
+- variant SKU
+- variant price
+- variant stock
+- image picker from Asset Library
+
+Variants are stored in the `ProductVariant` table and are supported by checkout and inventory decrement.
+
+### Asset picker expansion
+
+Asset selection is now broader:
+
+- scroll story media picker
+- hero image picker
+- gallery image picker
+- product image picker
+- 3D model picker
+
+Published hero/gallery/product/model sections use selected asset metadata when present.
+
+### A/B experiment reports
+
+Added report route and dashboard cards:
+
+```txt
+GET /api/ab-tests/:testId/report
+```
+
+The A/B page now displays variant-level:
+
+- assigned visitors
+- views
+- conversions
+- conversion rate
+
+### Custom domain controls
+
+Added:
+
+```txt
+PATCH  /api/domains/:domainId
+DELETE /api/domains/:domainId
+```
+
+The domain UI now supports:
+
+- verify
+- set primary
+- delete
+- status display
+
+Custom host routing remains DB-backed through `Domain.hostname`.
+
+### 3D viewer controls
+
+The model section now supports metadata-driven controls:
+
+- GLB/GLTF asset picker
+- scale
+- auto-rotate
+- environment preset
+
+Published `model3d` sections render with React Three Fiber and Drei.
+
+### Advanced scroll polish
+
+Added a public scroll progress bar and kept the scroll story section sticky, media-rich and chapter-driven.
+
+### Sentry integration
+
+Installed `@sentry/nextjs` and added:
+
+```txt
+sentry.client.config.ts
+sentry.server.config.ts
+instrumentation.ts
+```
+
+Environment variables:
+
+```env
+SENTRY_DSN=""
+NEXT_PUBLIC_SENTRY_DSN=""
+SENTRY_TRACES_SAMPLE_RATE="0.1"
+```
+
+### Test coverage scaffold
+
+Playwright remains available through:
+
+```txt
+npm run test:e2e
+```
+
+### Admin expansion
+
+The admin dashboard now includes:
+
+- users
+- websites
+- domains
+- subscriptions
+- audit logs
+- webhook events
+- recent users
+- recent websites
+- recent domains
+- recent subscriptions
