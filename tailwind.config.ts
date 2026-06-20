@@ -6,18 +6,22 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        cream: "#F8F6F0",
-        champagne: "#F8F6F0",
-        gold: "#D4AF37",
-        charcoal: "#1a1a1a"
+        cream: "#05050A",
+        champagne: "#0B0B12",
+        gold: "#8B5CF6",
+        cyan: "#22D3EE",
+        violet: "#8B5CF6",
+        charcoal: "#F8FAFC",
+        ink: "#05050A",
+        panel: "#0D0D15"
       },
       fontFamily: {
         sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
-        serif: ["var(--font-playfair)", "Playfair Display", "Georgia", "serif"]
+        serif: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"]
       },
       boxShadow: {
-        luxury: "0 24px 80px rgba(26, 26, 26, 0.12)",
-        glow: "0 0 80px rgba(212, 175, 55, 0.22)"
+        luxury: "0 28px 100px rgba(0, 0, 0, 0.42)",
+        glow: "0 0 70px rgba(139, 92, 246, 0.34), 0 0 120px rgba(34, 211, 238, 0.12)"
       },
       keyframes: {
         shimmer: { "0%": { transform: "translateX(-100%)" }, "100%": { transform: "translateX(100%)" } },

@@ -5,15 +5,17 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "dark" | "gold" | "light" | "ghost";
 };
 
+const base = "focus-ring inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-black tracking-[-.01em] transition active:scale-[.98] disabled:opacity-60";
+
 export function Button({ className, variant = "dark", ...props }: ButtonProps) {
   return (
     <button
       className={cn(
-        "focus-ring inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition active:scale-[.98]",
-        variant === "dark" && "bg-charcoal text-white shadow-luxury hover:bg-black",
-        variant === "gold" && "bg-gradient-to-br from-gold to-[#967019] text-white shadow-glow hover:brightness-105",
-        variant === "light" && "border border-black/10 bg-white/75 text-charcoal hover:bg-white",
-        variant === "ghost" && "text-charcoal/70 hover:bg-white/60 hover:text-charcoal",
+        base,
+        variant === "dark" && "border border-white/10 bg-white/10 text-white shadow-luxury hover:bg-white/15",
+        variant === "gold" && "bg-gradient-to-r from-violet via-[#7C3AED] to-cyan text-white shadow-glow hover:brightness-110",
+        variant === "light" && "border border-white/10 bg-white/[.08] text-white hover:bg-white/[.14]",
+        variant === "ghost" && "text-white/65 hover:bg-white/10 hover:text-white",
         className
       )}
       {...props}
@@ -26,11 +28,11 @@ export function ButtonLink({ href, children, className, variant = "dark" }: { hr
     <Link
       href={href}
       className={cn(
-        "focus-ring inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition active:scale-[.98]",
-        variant === "dark" && "bg-charcoal text-white shadow-luxury hover:bg-black",
-        variant === "gold" && "bg-gradient-to-br from-gold to-[#967019] text-white shadow-glow hover:brightness-105",
-        variant === "light" && "border border-black/10 bg-white/75 text-charcoal hover:bg-white",
-        variant === "ghost" && "text-charcoal/70 hover:bg-white/60 hover:text-charcoal",
+        base,
+        variant === "dark" && "border border-white/10 bg-white/10 text-white shadow-luxury hover:bg-white/15",
+        variant === "gold" && "bg-gradient-to-r from-violet via-[#7C3AED] to-cyan text-white shadow-glow hover:brightness-110",
+        variant === "light" && "border border-white/10 bg-white/[.08] text-white hover:bg-white/[.14]",
+        variant === "ghost" && "text-white/65 hover:bg-white/10 hover:text-white",
         className
       )}
     >
