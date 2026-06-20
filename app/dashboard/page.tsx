@@ -6,13 +6,14 @@ import { CreateWebsiteButton } from "@/components/CreateWebsiteButton";
 import { EmptyState } from "@/components/EmptyState";
 import { SetupRequired } from "@/components/SetupRequired";
 import { prisma } from "@/lib/prisma";
+import { websiteScope } from "@/lib/scope";
 import { getCurrentUser } from "@/lib/auth";
 
 export default async function DashboardPage() {
   try {
     const user = await getCurrentUser();
     const websites = await prisma.website.findMany({
-      where: { ownerId: user.id },
+      where: websiteScope(user),
       include: { _count: { select: { products: true, leads: true, orders: true } } },
       orderBy: { updatedAt: "desc" }
     });

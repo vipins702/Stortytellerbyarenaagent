@@ -22,19 +22,21 @@ export function roleCan(role: string, permission: Permission) {
 }
 
 export async function assertWebsitePermission(input: { userId: string; websiteId: string; permission: Permission }) {
-  const website = await prisma.website.findFirst({
-    where: {
-      id: input.websiteId,
-      OR: [
-        { ownerId: input.userId },
-        { organization: { memberships: { some: { userId: input.userId } } } }
-      ]
-    },
+  const website = await prisma.website.findUnique({
+    where: { id: input.websiteId },
     include: { organization: { include: { memberships: { where: { userId: input.userId } } } } }
   });
   if (!website) throw new Error("Website not found or access denied");
-  if (website.ownerId === input.userId) return website;
-  const role = website.organization?.memberships[0]?.role;
-  if (!role || !roleCan(role, input.permission)) throw new Error("You do not have permission for this action");
-  return website;
+
+  if (website.ownerId === input.userId || website.userId === input.userId) return website;
+
+  if (website.tenantId) {
+    const tenantMember = await prisma.tenantMember.findFirst({ where: { tenantId: website.tenantId, userId: input.userId, status: "Active" } });
+    if (tenantMember && roleCan(tenantMember.role, input.permission)) return website;
+  }
+
+  const legacyRole = website.organization?.memberships[0]?.role;
+  if (legacyRole && roleCan(legacyRole, input.permission)) return website;
+
+  throw new Error("You do not have permission for this action");
 }

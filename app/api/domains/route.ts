@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { websiteScope } from "@/lib/scope";
 import { getCurrentUser } from "@/lib/auth";
 import { assertDomainLimit } from "@/lib/plans";
 import { assertWebsitePermission } from "@/lib/permissions";
@@ -12,7 +13,7 @@ const schema = z.object({ websiteId: z.string(), hostname: z.string().min(3).max
 
 export async function GET() {
   const user = await getCurrentUser();
-  const domains = await prisma.domain.findMany({ where: { website: { ownerId: user.id } }, include: { website: true }, orderBy: { createdAt: "desc" } });
+  const domains = await prisma.domain.findMany({ where: { website: websiteScope(user) }, include: { website: true }, orderBy: { createdAt: "desc" } });
   return NextResponse.json({ data: domains });
 }
 

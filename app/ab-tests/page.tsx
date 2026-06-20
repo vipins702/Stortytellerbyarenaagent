@@ -5,12 +5,13 @@ import { ABTestManager } from "@/components/abtesting/ABTestManager";
 import { ABReportCards } from "@/components/abtesting/ABReportCards";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { websiteScope } from "@/lib/scope";
 
 export default async function ABTestsPage() {
   const user = await getCurrentUser();
   const [websites, tests] = await Promise.all([
-    prisma.website.findMany({ where: { ownerId: user.id }, select: { id: true, name: true } }),
-    prisma.aBTest.findMany({ where: { website: { ownerId: user.id } }, include: { variants: true }, orderBy: { createdAt: "desc" } })
+    prisma.website.findMany({ where: websiteScope(user), select: { id: true, name: true } }),
+    prisma.aBTest.findMany({ where: { website: websiteScope(user) }, include: { variants: true }, orderBy: { createdAt: "desc" } })
   ]);
   const reports = await Promise.all(tests.map(async (test) => {
     const variants = await Promise.all(test.variants.map(async (variant) => {

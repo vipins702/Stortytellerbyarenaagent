@@ -7,12 +7,13 @@ import { VisualBuilder } from "@/components/builder/VisualBuilder";
 import { componentDefinitions } from "@/lib/component-registry";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { websiteScope } from "@/lib/scope";
 
 export default async function BuilderPage() {
   try {
     const user = await getCurrentUser();
     const website = await prisma.website.findFirst({
-      where: { ownerId: user.id },
+      where: websiteScope(user),
       include: { pages: { orderBy: { createdAt: "asc" }, take: 1 }, products: { where: { status: "Active" }, orderBy: { createdAt: "desc" } }, assets: { orderBy: { createdAt: "desc" } } },
       orderBy: { updatedAt: "desc" }
     });

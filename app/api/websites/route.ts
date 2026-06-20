@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { websiteScope } from "@/lib/scope";
 import { getCurrentUser } from "@/lib/auth";
 import { createWebsiteSchema } from "@/lib/validators";
 import { createSection } from "@/lib/component-registry";
@@ -21,7 +22,7 @@ async function uniqueSlug(base: string) {
 export async function GET() {
   const user = await getCurrentUser();
   const websites = await prisma.website.findMany({
-    where: { ownerId: user.id },
+    where: websiteScope(user),
     include: { pages: { take: 1, orderBy: { createdAt: "asc" } }, _count: { select: { products: true, leads: true, orders: true } } },
     orderBy: { updatedAt: "desc" }
   });
