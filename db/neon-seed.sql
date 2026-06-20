@@ -1,5 +1,7 @@
--- Tenant-aware starter seed for Neon PostgreSQL
--- Run after db/neon-schema.sql.
+/*
+  Tenant-aware starter seed for Neon PostgreSQL
+  Run after db/neon-schema.sql.
+*/
 
 BEGIN;
 

@@ -966,8 +966,11 @@ ALTER TABLE "GenerationAsset" ADD CONSTRAINT "GenerationAsset_jobId_fkey" FOREIG
 -- AddForeignKey
 ALTER TABLE "GenerationAsset" ADD CONSTRAINT "GenerationAsset_assetId_fkey" FOREIGN KEY ("assetId") REFERENCES "Asset"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- Tenant-aware starter seed for Neon PostgreSQL
--- Run after db/neon-schema.sql.
+
+/*
+  Tenant-aware starter seed for Neon PostgreSQL
+  Run after db/neon-schema.sql.
+*/
 
 BEGIN;
 
