@@ -13,3 +13,5 @@ tsconfig.tsbuildinfo
 .npm
 .config
 .cache
+
+.ssh
