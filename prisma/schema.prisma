@@ -58,6 +58,7 @@ model User {
   memberships    Membership[]
   websites       Website[]     @relation("WebsiteOwner")
   subscriptions  Subscription[]
+  stripeConnectAccountId String?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 }
@@ -102,6 +103,8 @@ model Website {
   leads          Lead[]
   orders         Order[]
   analytics      AnalyticsEvent[]
+  domains        Domain[]
+  abTests        ABTest[]
   versions       PublishVersion[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
@@ -263,4 +266,46 @@ model AnalyticsEvent {
   @@index([websiteId])
   @@index([type])
   @@index([createdAt])
+}
+
+
+model Domain {
+  id         String   @id @default(cuid())
+  websiteId  String
+  website    Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  hostname   String   @unique
+  status     String   @default("Pending")
+  verifiedAt DateTime?
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([websiteId])
+}
+
+model ABTest {
+  id          String      @id @default(cuid())
+  websiteId   String
+  website     Website     @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  name        String
+  status      String      @default("Draft")
+  targetPath  String      @default("/")
+  goal        String      @default("lead_submit")
+  metadata    Json        @default("{}")
+  variants    ABVariant[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([websiteId])
+}
+
+model ABVariant {
+  id        String   @id @default(cuid())
+  testId    String
+  test      ABTest   @relation(fields: [testId], references: [id], onDelete: Cascade)
+  name      String
+  weight    Int      @default(50)
+  sections  Json     @default("[]")
+  metrics   Json     @default("{}")
+  createdAt DateTime @default(now())
 }

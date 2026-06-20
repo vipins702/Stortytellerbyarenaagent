@@ -1,4 +1,5 @@
 import { LeadCaptureForm } from "@/components/published/LeadCaptureForm";
+import { BuyButton } from "@/components/commerce/BuyButton";
 type Section = { id: string; type: string; props: Record<string, any>; animation?: Record<string, any>; metadata?: Record<string, any> };
 type Product = { id: string; name: string; price: number; stock: number };
 type Asset = { id: string; url: string; type: string; filename: string };
@@ -12,13 +13,13 @@ export function PublishedRenderer({ website, page, products, assets }: { website
           <a href="#contact" className="rounded-full bg-[#1a1a1a] px-5 py-2 text-sm font-bold text-white">Contact</a>
         </div>
       </header>
-      {(page.sections || []).map((section) => <PublishedSection key={section.id} websiteId={website.id} section={section} products={products} assets={assets} />)}
+      {(page.sections || []).map((section) => <PublishedSection key={section.id} slug={website.slug} websiteId={website.id} section={section} products={products} assets={assets} />)}
       <footer className="border-t border-black/10 px-5 py-10 text-center text-sm text-black/50">Published with Aurelia AI</footer>
     </main>
   );
 }
 
-function PublishedSection({ websiteId, section, products, assets }: { websiteId: string; section: Section; products: Product[]; assets: Asset[] }) {
+function PublishedSection({ slug, websiteId, section, products, assets }: { slug: string; websiteId: string; section: Section; products: Product[]; assets: Asset[] }) {
   const p = section.props || {};
   if (section.type === "hero") {
     const heroImage = assets.find((asset) => asset.type.startsWith("image/"));
@@ -26,7 +27,7 @@ function PublishedSection({ websiteId, section, products, assets }: { websiteId:
   }
   if (section.type === "features") return <section className="px-5 py-20"><div className="mx-auto max-w-7xl"><h2 className="font-serif text-5xl font-black tracking-[-.05em]">{p.title}</h2><div className="mt-8 grid gap-4 md:grid-cols-3">{(p.items || []).map((item: any, i: number) => <div key={i} className="rounded-[2rem] border border-black/10 bg-white/60 p-7 shadow-xl backdrop-blur-xl"><b>{item.title}</b><p className="mt-3 leading-7 text-black/55">{item.body}</p></div>)}</div></div></section>;
   if (section.type === "gallery") return <section className="px-5 py-20"><div className="mx-auto max-w-7xl"><h2 className="font-serif text-5xl font-black tracking-[-.05em]">{p.title}</h2><div className="mt-8 grid gap-4 md:grid-cols-[1.4fr_1fr_1fr]">{[0,1,2].map((i) => <div key={i} className="h-72 rounded-[2rem] bg-gradient-to-br from-white via-[#eadfc9] to-[#D4AF37] shadow-xl" />)}</div></div></section>;
-  if (section.type === "products") return <section id="products" className="px-5 py-20"><div className="mx-auto max-w-7xl"><h2 className="font-serif text-5xl font-black tracking-[-.05em]">{p.title}</h2><div className="mt-8 grid gap-4 md:grid-cols-3">{products.slice(0, p.limit || 3).map((product) => <article key={product.id} className="rounded-[2rem] border border-black/10 bg-white/70 p-5 shadow-xl"><div className="mb-5 h-44 rounded-[1.5rem] bg-gradient-to-br from-[#1a1a1a] to-[#D4AF37]"/><b>{product.name}</b><p className="mt-2 text-black/55">${(product.price / 100).toFixed(2)}</p><button className="mt-5 rounded-full border border-black/10 px-5 py-2 font-bold">Add to cart</button></article>)}</div></div></section>;
+  if (section.type === "products") return <section id="products" className="px-5 py-20"><div className="mx-auto max-w-7xl"><h2 className="font-serif text-5xl font-black tracking-[-.05em]">{p.title}</h2><div className="mt-8 grid gap-4 md:grid-cols-3">{products.slice(0, p.limit || 3).map((product) => <article key={product.id} className="rounded-[2rem] border border-black/10 bg-white/70 p-5 shadow-xl"><div className="mb-5 h-44 rounded-[1.5rem] bg-gradient-to-br from-[#1a1a1a] to-[#D4AF37]"/><b>{product.name}</b><p className="mt-2 text-black/55">${(product.price / 100).toFixed(2)}</p><BuyButton slug={slug} productId={product.id} /></article>)}</div></div></section>;
   if (section.type === "lead") return <section id="contact" className="px-5 py-20"><div className="mx-auto max-w-5xl rounded-[2rem] bg-[#1a1a1a] p-10 text-white"><h2 className="font-serif text-5xl font-black tracking-[-.05em]">{p.title}</h2><LeadCaptureForm websiteId={websiteId} placeholder={p.placeholder || "email@brand.com"} /></div></section>;
   return null;
 }

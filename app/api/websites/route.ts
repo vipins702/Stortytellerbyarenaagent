@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { createWebsiteSchema } from "@/lib/validators";
 import { createSection } from "@/lib/component-registry";
 import { slugify } from "@/lib/utils";
+import { assertWebsiteLimit } from "@/lib/plans";
 
 async function uniqueSlug(base: string) {
   let slug = slugify(base);
@@ -30,6 +31,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser();
+    await assertWebsiteLimit(user.id);
     const input = createWebsiteSchema.parse(await request.json());
     const template = input.templateId ? await prisma.template.findUnique({ where: { id: input.templateId } }) : null;
     const slug = await uniqueSlug(input.name);

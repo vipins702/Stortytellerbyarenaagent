@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, Blocks, CreditCard, History, Images, LayoutDashboard, Library, Settings, ShoppingBag, Sparkles } from "lucide-react";
+import { BarChart3, Blocks, CreditCard, FlaskConical, Globe2, History, Images, LayoutDashboard, Library, Settings, ShoppingBag, Sparkles, Users } from "lucide-react";
 import { ButtonLink } from "@/components/ui/Button";
 
 const nav = [
@@ -10,6 +10,10 @@ const nav = [
   { href: "/cms/leads", label: "Leads", icon: Sparkles },
   { href: "/templates", label: "Templates", icon: Library },
   { href: "/assets", label: "Assets", icon: Images },
+  { href: "/domains", label: "Domains", icon: Globe2 },
+  { href: "/team", label: "Team", icon: Users },
+  { href: "/commerce", label: "Commerce", icon: CreditCard },
+  { href: "/ab-tests", label: "A/B Tests", icon: FlaskConical },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/versions", label: "Versions", icon: History },
   { href: "/settings", label: "Settings", icon: Settings },

@@ -304,3 +304,104 @@ Published site route:
 ```
 
 The lead form now posts real leads to DB and tracks analytics events.
+
+## Premium Pending Layer Added
+
+### Plan limits
+
+Added `lib/plans.ts` with DB-backed plan checks:
+
+- Free: 2 websites, no custom domains
+- Pro: 10 websites, 3 custom domains
+- Business: unlimited websites, 25 custom domains
+
+`POST /api/websites` now enforces website limits. `POST /api/domains` enforces domain limits.
+
+### Team and organization collaboration
+
+Added:
+
+```txt
+/team
+GET  /api/team
+POST /api/team
+```
+
+This is DB-driven through `Organization` and `Membership`, with roles:
+
+```txt
+Owner, Admin, Designer, Editor, Viewer, Billing
+```
+
+### Custom domains
+
+Added Prisma `Domain` model and:
+
+```txt
+/domains
+GET  /api/domains
+POST /api/domains
+```
+
+Domain records include Vercel-ready DNS metadata:
+
+```txt
+CNAME www → cname.vercel-dns.com
+```
+
+### Stripe Connect + storefront checkout
+
+Added:
+
+```txt
+/commerce
+POST /api/connect/stripe
+POST /api/storefront/:slug/checkout
+```
+
+Published product cards now have a real checkout button. If the site owner has connected Stripe Express, checkout is created on the connected account and platform-fee metadata is prepared.
+
+### A/B testing foundation
+
+Added Prisma models:
+
+```txt
+ABTest
+ABVariant
+```
+
+Added:
+
+```txt
+/ab-tests
+GET  /api/ab-tests
+POST /api/ab-tests
+```
+
+Experiments store metadata-driven section variants and conversion goals.
+
+### Gemini vision: image/scene to website
+
+Added:
+
+```txt
+POST /api/ai/vision
+```
+
+Uploads an image/screenshot/scene and asks Gemini to return metadata-driven editable website JSON using the same component registry contract.
+
+### Published storefront improvements
+
+Published product cards on `/s/:slug` now use:
+
+```txt
+components/commerce/BuyButton.tsx
+```
+
+Checkout route:
+
+```txt
+POST /api/storefront/:slug/checkout
+```
+
+This creates Stripe Checkout sessions from DB products.
