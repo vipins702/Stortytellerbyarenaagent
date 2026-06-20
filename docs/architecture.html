@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SaaS Architecture Diagram</title>
+  <style>
+    body{margin:0;font-family:Inter,system-ui,sans-serif;background:#F8F6F0;color:#1a1a1a} .wrap{max-width:1200px;margin:auto;padding:40px 20px} h1{font-family:Georgia,serif;font-size:56px;line-height:.95;letter-spacing:-.06em} p{color:#645f58;line-height:1.7}.card{background:rgba(255,255,255,.72);border:1px solid rgba(0,0,0,.1);border-radius:28px;padding:24px;box-shadow:0 24px 80px rgba(26,26,26,.1)} svg{width:100%;height:auto}.node{fill:white;stroke:rgba(26,26,26,.18);stroke-width:1.5}.gold{fill:#D4AF37}.dark{fill:#1a1a1a}.txt{font-size:14px;font-weight:700;fill:#1a1a1a}.txtw{font-size:14px;font-weight:700;fill:white}.line{stroke:#9a7a22;stroke-width:2;fill:none;marker-end:url(#arrow)}
+  </style>
+</head>
+<body><main class="wrap"><h1>Premium SaaS Architecture</h1><p>Workspace users sign in with Google through Clerk, build metadata-driven sites, upload media to Vercel Blob, sell through Stripe, and publish DB-rendered storefronts with SEO, analytics and custom domains.</p><section class="card"><svg viewBox="0 0 1160 720" role="img" aria-label="SaaS architecture diagram"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9a7a22"/></marker></defs>
+  <rect class="node" x="30" y="60" width="180" height="70" rx="18"/><text class="txt" x="120" y="102" text-anchor="middle">Workspace User</text>
+  <rect class="gold" x="260" y="60" width="180" height="70" rx="18"/><text class="txt" x="350" y="102" text-anchor="middle">Clerk Google Auth</text>
+  <rect class="node" x="490" y="60" width="210" height="70" rx="18"/><text class="txt" x="595" y="102" text-anchor="middle">Workspace App</text>
+  <rect class="node" x="760" y="40" width="170" height="55" rx="16"/><text class="txt" x="845" y="73" text-anchor="middle">Builder</text>
+  <rect class="node" x="760" y="110" width="170" height="55" rx="16"/><text class="txt" x="845" y="143" text-anchor="middle">CMS</text>
+  <rect class="node" x="760" y="180" width="170" height="55" rx="16"/><text class="txt" x="845" y="213" text-anchor="middle">Assets / SEO</text>
+  <path class="line" d="M210 95 H260"/><path class="line" d="M440 95 H490"/><path class="line" d="M700 95 C730 70 735 68 760 68"/><path class="line" d="M700 95 C730 120 735 138 760 138"/><path class="line" d="M700 95 C730 170 735 208 760 208"/>
+  <rect class="dark" x="490" y="310" width="210" height="76" rx="20"/><text class="txtw" x="595" y="354" text-anchor="middle">Next.js API Routes</text>
+  <rect class="node" x="90" y="310" width="190" height="76" rx="20"/><text class="txt" x="185" y="354" text-anchor="middle">Gemini APIs</text>
+  <rect class="node" x="90" y="430" width="190" height="76" rx="20"/><text class="txt" x="185" y="474" text-anchor="middle">Vercel Blob</text>
+  <rect class="node" x="490" y="500" width="210" height="76" rx="20"/><text class="txt" x="595" y="544" text-anchor="middle">Prisma ORM</text>
+  <rect class="gold" x="490" y="620" width="210" height="70" rx="20"/><text class="txt" x="595" y="661" text-anchor="middle">PostgreSQL / Supabase</text>
+  <path class="line" d="M845 235 C810 300 720 330 700 348"/><path class="line" d="M490 348 H280"/><path class="line" d="M280 468 H490"/><path class="line" d="M595 386 V500"/><path class="line" d="M595 576 V620"/>
+  <rect class="node" x="870" y="330" width="210" height="70" rx="20"/><text class="txt" x="975" y="372" text-anchor="middle">Published Site</text>
+  <rect class="node" x="870" y="440" width="210" height="70" rx="20"/><text class="txt" x="975" y="482" text-anchor="middle">Stripe Checkout</text>
+  <rect class="node" x="870" y="550" width="210" height="70" rx="20"/><text class="txt" x="975" y="592" text-anchor="middle">Domains / Analytics</text>
+  <path class="line" d="M700 348 H870"/><path class="line" d="M975 400 V440"/><path class="line" d="M870 475 C780 475 735 500 700 538"/><path class="line" d="M870 585 C790 585 740 560 700 538"/>
+</svg></section></main></body></html>
