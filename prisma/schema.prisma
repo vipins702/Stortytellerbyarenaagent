@@ -60,6 +60,7 @@ model User {
   subscriptions  Subscription[]
   auditLogs      AuditLog[]
   onboarding     OnboardingState?
+  generationJobs GenerationJob[]
   stripeConnectAccountId String?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
@@ -108,6 +109,7 @@ model Website {
   domains        Domain[]
   abTests        ABTest[]
   versions       PublishVersion[]
+  generationJobs GenerationJob[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
@@ -168,6 +170,7 @@ model Asset {
   filename    String
   metadata    Json     @default("{}")
   createdAt   DateTime @default(now())
+  generationAssets GenerationAsset[]
 
   @@index([websiteId])
 }
@@ -370,4 +373,63 @@ model ProductVariant {
   updatedAt DateTime @updatedAt
 
   @@index([productId])
+}
+
+
+model GenerationJob {
+  id          String            @id @default(cuid())
+  userId      String
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  websiteId   String?
+  website     Website?          @relation(fields: [websiteId], references: [id], onDelete: SetNull)
+  type        String
+  prompt      String
+  status      String            @default("Queued")
+  currentStep String?
+  result      Json              @default("{}")
+  error       String?
+  metadata    Json              @default("{}")
+  steps       GenerationStep[]
+  assets      GenerationAsset[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([userId])
+  @@index([websiteId])
+  @@index([status])
+  @@index([type])
+}
+
+model GenerationStep {
+  id        String        @id @default(cuid())
+  jobId     String
+  job       GenerationJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  name      String
+  status    String        @default("Pending")
+  input     Json          @default("{}")
+  output    Json          @default("{}")
+  error     String?
+  startedAt DateTime?
+  endedAt   DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@unique([jobId, name])
+  @@index([jobId])
+  @@index([status])
+}
+
+model GenerationAsset {
+  id        String        @id @default(cuid())
+  jobId     String
+  job       GenerationJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  assetId   String
+  asset     Asset         @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  role      String        @default("generated")
+  metadata  Json          @default("{}")
+  createdAt DateTime      @default(now())
+
+  @@unique([jobId, assetId])
+  @@index([jobId])
+  @@index([assetId])
 }

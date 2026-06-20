@@ -1019,3 +1019,85 @@ The admin dashboard now includes:
 - recent websites
 - recent domains
 - recent subscriptions
+
+## Generation checkpoint and resume system
+
+The generation flow now has checkpoint tracking so users do not lose completed work when a later step fails.
+
+### Database models
+
+Added:
+
+```txt
+GenerationJob
+GenerationStep
+GenerationAsset
+```
+
+A generation job records:
+
+- user
+- website
+- type: website or image
+- prompt
+- status: Running, Failed, Completed
+- current step
+- result
+- error
+- linked generated assets
+
+Each step records:
+
+- step name
+- status
+- input
+- output
+- error
+- start/end timestamps
+
+Generated assets are linked back to the job through `GenerationAsset`.
+
+### APIs
+
+Added:
+
+```txt
+GET  /api/generation-jobs?websiteId=:websiteId
+POST /api/generation-jobs/:jobId/retry
+```
+
+Updated:
+
+```txt
+POST /api/ai/generate
+POST /api/ai/image
+```
+
+The generation APIs now create jobs and record step progress.
+
+### Builder UI
+
+The builder now shows a `Generation checkpoints` panel. It displays:
+
+- recent jobs
+- job type
+- status
+- prompt
+- current step
+- error message
+- number of recorded steps
+- number of linked assets
+- retry button for failed jobs
+
+### Failure behavior
+
+If image generation succeeds and later website generation fails, generated/uploaded assets remain saved in Vercel Blob and the database asset library. The failed job remains visible and can be retried without discarding completed assets.
+
+### Production DB update
+
+Run:
+
+```bash
+npm run db:generate
+npm run db:push
+```

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { ArrowDown, ArrowUp, Plus, Save, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge, Card } from "@/components/ui/Card";
@@ -16,6 +16,7 @@ type BuilderSection = {
 type Definition = { type: string; label: string; description: string; defaults: Record<string, any>; category?: string };
 type Product = { id: string; name: string; price: number; stock: number };
 type Asset = { id: string; url: string; filename: string; type: string; metadata?: any };
+type GenerationJob = { id: string; type: string; prompt: string; status: string; currentStep?: string | null; error?: string | null; result?: any; createdAt: string; steps?: any[]; assets?: { asset: Asset }[] };
 
 type Props = {
   website: { id: string; name: string; slug: string; theme: any };
@@ -37,6 +38,7 @@ export function VisualBuilder({ website, page, products, assets, definitions }: 
   const [isPending, startTransition] = useTransition();
   const [status, setStatus] = useState("Saved from database");
   const [localAssets, setLocalAssets] = useState<Asset[]>(assets || []);
+  const [jobs, setJobs] = useState<GenerationJob[]>([]);
 
   function buildSection(type: string): BuilderSection {
     const definition = definitions.find((item) => item.type === type);
@@ -55,6 +57,28 @@ export function VisualBuilder({ website, page, products, assets, definitions }: 
   }
   function update(id: string, props: Record<string, any>) {
     setSections((current) => current.map((s) => s.id === id ? { ...s, props: { ...s.props, ...props } } : s));
+  }
+  async function loadJobs() {
+    const res = await fetch(`/api/generation-jobs?websiteId=${website.id}`);
+    const json = await res.json();
+    if (res.ok) setJobs(json.data);
+  }
+  useEffect(() => { loadJobs().catch(() => null); }, [website.id]);
+  async function retryJob(jobId: string) {
+    setStatus("Retrying generation checkpoint…");
+    const res = await fetch(`/api/generation-jobs/${jobId}/retry`, { method: "POST" });
+    const json = await res.json();
+    if (!res.ok) { setStatus(json.error || "Retry failed"); await loadJobs(); return; }
+    if (json.data?.sections) {
+      setSections(json.data.sections);
+      setSiteName(json.data.name || siteName);
+      setStatus("Generation retry completed. Review and save.");
+    }
+    if (json.data?.asset) {
+      setLocalAssets((current) => [json.data.asset, ...current]);
+      setStatus("Image retry completed and saved to assets.");
+    }
+    await loadJobs();
   }
   async function save() {
     setStatus("Saving…");
@@ -85,7 +109,7 @@ export function VisualBuilder({ website, page, products, assets, definitions }: 
     setStatus("Generating image with Gemini and saving to Vercel Blob…");
     const res = await fetch("/api/ai/image", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: imagePrompt, websiteId: website.id }) });
     const json = await res.json();
-    if (res.ok) { if (json.data.asset) setLocalAssets((current) => [json.data.asset, ...current]); setStatus(`Image saved: ${json.data.url}`); } else setStatus(json.error || "Image generation failed");
+    if (res.ok) { if (json.data.asset) setLocalAssets((current) => [json.data.asset, ...current]); setStatus(`Image saved: ${json.data.url}`); await loadJobs(); } else { setStatus(json.error || "Image generation failed"); await loadJobs(); }
   }
   async function generateFromScene(file: File) {
     setStatus("Reading scene and preparing editable page…");
@@ -107,13 +131,14 @@ export function VisualBuilder({ website, page, products, assets, definitions }: 
   }
   async function generate() {
     setStatus("Generating via API…");
-    const res = await fetch("/api/ai/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: aiPrompt, industry: "Luxury retail" }) });
+    const res = await fetch("/api/ai/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: aiPrompt, industry: "Luxury retail", websiteId: website.id }) });
     const json = await res.json();
     if (!res.ok) { setStatus(json.error || "AI failed"); return; }
     setSections(json.data.sections);
     setSiteName(json.data.name);
     setAiOpen(false);
     setStatus("AI generated sections. Save to persist.");
+    await loadJobs();
   }
 
   return (
@@ -125,7 +150,7 @@ export function VisualBuilder({ website, page, products, assets, definitions }: 
       <div className="grid gap-4 xl:grid-cols-[280px_1fr_290px]">
         <Card className="p-4"><h2 className="mb-4 font-black">Component metadata</h2><div className="grid gap-3">{definitions.map((item) => <button key={item.type} draggable onDragStart={(e) => e.dataTransfer.setData("section", item.type)} onClick={() => add(item.type)} className="rounded-3xl border border-black/10 bg-white/70 p-4 text-left transition hover:border-gold/50"><b>{item.label}</b><p className="mt-1 text-sm text-charcoal/55">{item.description}</p><p className="mt-2 text-[11px] font-black uppercase tracking-widest text-gold">{item.category || "Section"}</p></button>)}</div></Card>
         <Card className="min-h-[720px] overflow-hidden p-3"><div onDragOver={(e) => e.preventDefault()} onDrop={(e) => add(e.dataTransfer.getData("section") || "hero")} className="min-h-[690px] rounded-[24px] border border-black/10 bg-white p-3">{sections.length === 0 && <div className="rounded-3xl border border-dashed border-gold/60 bg-gold/5 p-8 text-center font-bold text-[#765813]">No sections yet. Add from metadata library.</div>}{sections.map((section, index) => <CanvasSection key={section.id} section={section} index={index} update={update} remove={remove} move={move} products={products} assets={localAssets} />)}<div className="mt-3 rounded-3xl border border-dashed border-gold/60 bg-gold/5 p-5 text-center text-sm font-bold text-[#765813]">Drop API component here</div></div></Card>
-        <Card className="p-4"><h2 className="mb-4 font-black">Website metadata</h2><label className="text-xs font-black uppercase tracking-widest text-charcoal/45">Website name</label><input value={siteName} onChange={(e) => setSiteName(e.target.value)} className="mt-2 w-full rounded-2xl border border-black/10 bg-white/75 px-4 py-3" /><div className="mt-5"><p className="text-xs font-black uppercase tracking-widest text-charcoal/45">Theme from DB</p><pre className="mt-3 max-h-44 overflow-auto rounded-2xl bg-charcoal p-4 text-xs text-cream">{JSON.stringify(website.theme, null, 2)}</pre></div><div className="mt-5 rounded-3xl border border-black/10 bg-white/65 p-4"><b>Vercel Blob assets</b><p className="mt-2 text-sm text-charcoal/55">Upload images or GLB/GLTF models. Files are stored in Vercel Blob and indexed in DB.</p><input className="mt-3 text-sm" type="file" accept="image/*,video/mp4,video/webm,.glb,.gltf" onChange={(e) => e.target.files?.[0] && startTransition(() => uploadAsset(e.target.files![0], "builder"))} /><Button className="mt-3 w-full" variant="light" onClick={() => startTransition(generateHeroImage)}>Generate image with Gemini</Button></div></Card>
+        <Card className="p-4"><h2 className="mb-4 font-black">Website metadata</h2><label className="text-xs font-black uppercase tracking-widest text-charcoal/45">Website name</label><input value={siteName} onChange={(e) => setSiteName(e.target.value)} className="mt-2 w-full rounded-2xl border border-black/10 bg-white/75 px-4 py-3" /><div className="mt-5"><p className="text-xs font-black uppercase tracking-widest text-charcoal/45">Theme from DB</p><pre className="mt-3 max-h-44 overflow-auto rounded-2xl bg-charcoal p-4 text-xs text-cream">{JSON.stringify(website.theme, null, 2)}</pre></div><div className="mt-5 rounded-3xl border border-black/10 bg-white/65 p-4"><b>Vercel Blob assets</b><p className="mt-2 text-sm text-charcoal/55">Upload images or GLB/GLTF models. Files are stored in Vercel Blob and indexed in DB.</p><input className="mt-3 text-sm" type="file" accept="image/*,video/mp4,video/webm,.glb,.gltf" onChange={(e) => e.target.files?.[0] && startTransition(() => uploadAsset(e.target.files![0], "builder"))} /><Button className="mt-3 w-full" variant="light" onClick={() => startTransition(generateHeroImage)}>Generate image with Gemini</Button></div><GenerationHistory jobs={jobs} onRetry={(id) => startTransition(() => retryJob(id))} /></Card>
       </div>
       {aiOpen && <div className="fixed inset-0 z-50 grid place-items-center bg-black/45 p-4 backdrop-blur-xl"><Card className="w-full max-w-2xl p-6"><div className="flex justify-between gap-4"><h2 className="font-serif text-4xl font-black tracking-[-.04em]">AI Website Generator</h2><Button variant="ghost" onClick={() => setAiOpen(false)}>Close</Button></div><textarea value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} rows={5} placeholder="Luxury skincare storefront with product cards, gallery and lead capture…" className="mt-5 w-full rounded-3xl border border-black/10 bg-white/75 p-4" /><p className="mt-3 text-sm text-charcoal/55">Generation returns editable section metadata that can be saved to your page.</p><div className="mt-4 rounded-3xl border border-black/10 bg-white/60 p-4"><b>Convert a scene or screenshot</b><p className="mt-1 text-sm text-charcoal/55">Upload a reference image and turn it into editable sections.</p><input className="mt-3 text-sm" type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && startTransition(() => generateFromScene(e.target.files![0]))} /></div><Button className="mt-5" variant="gold" disabled={isPending} onClick={() => startTransition(generate)}>{isPending ? "Working…" : "Generate website"}</Button></Card></div>}
     </div>
@@ -224,4 +249,9 @@ function GalleryEditor({ section, props, assets, update }: { section: BuilderSec
     update(section.id, { images: images.includes(asset.url) ? images.filter((url) => url !== asset.url) : [...images, asset.url].slice(0, 6) });
   }
   return <div className="p-10"><Editable value={props.title || "Editorial gallery"} onSave={(title) => update(section.id, { title })} className="font-serif text-4xl font-black tracking-[-.04em]" /><div className="mt-6 grid gap-3 md:grid-cols-[1.4fr_1fr_1fr]">{[0,1,2].map((i) => images[i] ? <img key={i} src={images[i]} alt="Gallery" className="h-64 rounded-3xl object-cover"/> : <div key={i} className="shimmer h-64 rounded-3xl bg-gradient-to-br from-[#eadfc9] to-gold" />)}</div><div className="mt-5 rounded-3xl border border-black/10 bg-white/60 p-4"><b>Gallery images</b><div className="mt-3 grid max-h-56 gap-2 overflow-auto md:grid-cols-4">{imageAssets.map((asset) => <button key={asset.id} onClick={() => toggle(asset)} className={`overflow-hidden rounded-2xl border ${images.includes(asset.url) ? "border-gold" : "border-black/10"}`}><img src={asset.url} alt={asset.filename} className="h-20 w-full object-cover"/><span className="block truncate p-2 text-xs">{asset.filename}</span></button>)}</div></div></div>;
+}
+
+
+function GenerationHistory({ jobs, onRetry }: { jobs: GenerationJob[]; onRetry: (id: string) => void }) {
+  return <div className="mt-5 rounded-3xl border border-black/10 bg-white/65 p-4"><div className="flex items-center justify-between gap-3"><b>Generation checkpoints</b><span className="text-xs font-bold text-charcoal/45">{jobs.length}</span></div><p className="mt-1 text-sm text-charcoal/55">Failed jobs keep completed steps and saved assets. Retry resumes from the recorded prompt.</p><div className="mt-3 grid max-h-80 gap-2 overflow-auto">{jobs.map((job) => <div key={job.id} className="rounded-2xl border border-black/10 bg-white/75 p-3"><div className="flex items-center justify-between gap-2"><b className="truncate text-sm">{job.type}</b><span className={`rounded-full px-2 py-1 text-[10px] font-black ${job.status === "Completed" ? "bg-green-100 text-green-700" : job.status === "Failed" ? "bg-red-100 text-red-700" : "bg-gold/20 text-[#765813]"}`}>{job.status}</span></div><p className="mt-1 line-clamp-2 text-xs text-charcoal/55">{job.prompt}</p>{job.currentStep && <p className="mt-1 text-[11px] text-charcoal/40">Step: {job.currentStep}</p>}{job.error && <p className="mt-1 text-[11px] text-red-700">{job.error}</p>}<div className="mt-2 flex items-center justify-between"><span className="text-[11px] text-charcoal/40">{job.steps?.length || 0} steps · {job.assets?.length || 0} assets</span>{job.status === "Failed" && <button onClick={() => onRetry(job.id)} className="rounded-full bg-charcoal px-3 py-1 text-xs font-bold text-white">Retry</button>}</div></div>)}</div>{!jobs.length && <p className="mt-3 rounded-2xl bg-white/60 p-3 text-sm text-charcoal/50">No generation jobs yet.</p>}</div>;
 }
