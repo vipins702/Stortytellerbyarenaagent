@@ -1,0 +1,72 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+
+enum WebsiteStatus { Draft Published }
+enum ProductStatus { Active Draft }
+enum OrderStatus { Paid Packing Shipped Delivered Cancelled }
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  websites  Website[]
+}
+
+model Website {
+  id        String        @id @default(cuid())
+  ownerId   String
+  owner     User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name      String
+  slug      String        @unique
+  status    WebsiteStatus @default(Draft)
+  pages     Page[]
+  products  Product[]
+  leads     Lead[]
+  orders    Order[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model Page {
+  id        String   @id @default(cuid())
+  websiteId String
+  website   Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  title     String
+  path      String
+  sections  Json
+  seo       Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id        String        @id @default(cuid())
+  websiteId String
+  website   Website       @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  name      String
+  price     Int
+  stock     Int           @default(0)
+  status    ProductStatus @default(Draft)
+  createdAt DateTime      @default(now())
+}
+
+model Lead {
+  id        String   @id @default(cuid())
+  websiteId String
+  website   Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  name      String
+  email     String
+  source    String?
+  createdAt DateTime @default(now())
+}
+
+model Order {
+  id        String      @id @default(cuid())
+  websiteId String
+  website   Website     @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  customer  String
+  total     Int
+  status    OrderStatus @default(Paid)
+  createdAt DateTime    @default(now())
+}

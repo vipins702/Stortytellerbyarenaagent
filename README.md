@@ -1,79 +1,58 @@
-# Aurelia AI — Premium Website Builder SaaS MVP
+# Aurelia AI — Premium AI Website Builder SaaS MVP
 
-This workspace contains a self-contained MVP prototype for a premium AI-powered website builder SaaS.
+This is now a real Next.js SaaS MVP structure, not only a single `index.html` prototype.
 
-## Open the MVP
+## Built
 
-Open `index.html` in a browser, or use the Arena preview.
-
-No installation is required. The app is intentionally built as a single-file static MVP so it previews reliably without external CDNs, fonts, APIs, databases, or network access.
-
-## MVP Features Built
-
-- Premium landing page inspired by Apple/Webflow/Stripe/Vercel aesthetics
-- Dashboard with website cards and activity feed
-- Visual builder with:
-  - Component library
-  - Drag/drop sections into canvas
-  - Add/remove/reorder sections
-  - Inline content editing
-  - Real-time preview
-  - Luxury color presets
-  - Font pairing/animation controls
+- Next.js 14 App Router
+- TypeScript
+- Tailwind CSS design system
+- SaaS landing page
+- Login / signup screens, ready for Clerk
+- Dashboard: My Websites
+- Visual Builder route with:
+  - component library
+  - add sections
+  - drag/drop into canvas
+  - inline editing
+  - reorder/delete sections
+  - AI generator modal
+  - export/publish placeholders
   - 3D model upload placeholder
-- AI generator modal with:
-  - Prompt input
-  - Industry selection
-  - Image inspiration upload placeholder
-  - Loading/progress states
-  - Generated editable website canvas
-- Template gallery with one-click template application
-- Mini CMS with:
-  - Product CRUD
-  - Inventory edits
-  - Lead capture simulation
-  - Order status tracker
-- Settings/billing page with:
-  - Plan cards
-  - Team invite placeholder
-  - Domain connection placeholder
-  - Analytics placeholder
-- LocalStorage persistence
-- Responsive mobile design
-- Export HTML demo action
-- Publish simulation
+- CMS routes:
+  - products
+  - orders
+  - leads
+- Template gallery
+- Settings page
+- Billing/pricing page
+- AI generation API route with validation and mocked response
+- Prisma PostgreSQL schema for production backend
+- `.env.example` for Clerk, Stripe, OpenAI, Uploadthing and database
 
-## Production Next.js Roadmap
+## Run locally
 
-The next step is converting this MVP prototype into the requested stack:
+```bash
+npm install
+npm run dev
+```
 
-- Next.js 14 App Router + TypeScript
-- Tailwind CSS + shadcn/ui
-- Clerk Auth + Clerk Organizations
-- Supabase PostgreSQL + Prisma
-- Stripe Billing, later Stripe Connect for storefront payments
-- Uploadthing/Cloudinary for assets
-- OpenAI for prompt-to-site generation
-- React Three Fiber for 3D product/model viewer
-- GSAP/Framer Motion/Lenis for production animation
-- Sentry + PostHog/Vercel Analytics
+Open:
 
-## Suggested MVP Database Models
+```txt
+http://localhost:3000
+```
 
-- User
-- Organization
-- Membership
-- Website
-- Page
-- Section
-- Asset
-- Product
-- Order
-- Lead
-- Template
-- Subscription
-- PublishVersion
+## Production integrations to wire next
 
-## Notes
+- Clerk auth and organizations
+- Supabase PostgreSQL via Prisma
+- Stripe Billing
+- OpenAI GPT-4/DALL-E website generation
+- Uploadthing/Cloudinary asset uploads
+- React Three Fiber 3D model viewer
+- Real publish pipeline and custom domains
 
-This is an MVP UI/application prototype, not a full backend SaaS yet. It is designed to validate the product flow and interface before wiring real auth, database, AI, billing, publishing, and storage services.
+## Important
+
+`index.html` remains in the repo as an old static prototype, but the actual SaaS MVP is now the Next.js app under `app/`, `components/`, `lib/`, and `prisma/`.

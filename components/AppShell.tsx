@@ -1,0 +1,46 @@
+import Link from "next/link";
+import { BarChart3, Blocks, CreditCard, LayoutDashboard, Library, Settings, ShoppingBag, Sparkles } from "lucide-react";
+import { ButtonLink } from "@/components/ui/Button";
+
+const nav = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/builder", label: "Builder", icon: Blocks },
+  { href: "/cms/products", label: "Products", icon: ShoppingBag },
+  { href: "/cms/orders", label: "Orders", icon: BarChart3 },
+  { href: "/cms/leads", label: "Leads", icon: Sparkles },
+  { href: "/templates", label: "Templates", icon: Library },
+  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/billing", label: "Billing", icon: CreditCard }
+];
+
+export function AppShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen">
+      <header className="sticky top-0 z-50 border-b border-black/10 bg-cream/75 backdrop-blur-2xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
+          <Link href="/" className="flex items-center gap-3 font-black tracking-tight">
+            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-charcoal text-gold shadow-glow">✦</span>
+            <span>Aurelia <span className="gold-text">AI</span></span>
+          </Link>
+          <div className="flex items-center gap-2">
+            <ButtonLink href="/builder" variant="light">Open builder</ButtonLink>
+            <ButtonLink href="/login" variant="gold">Account</ButtonLink>
+          </div>
+        </div>
+      </header>
+      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[250px_1fr]">
+        <aside className="glass h-fit rounded-[28px] p-3 lg:sticky lg:top-24">
+          <p className="px-3 py-2 text-xs font-black uppercase tracking-[.18em] text-charcoal/50">Workspace</p>
+          <nav className="grid gap-1">
+            {nav.map((item) => (
+              <Link key={item.href} href={item.href} className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-bold text-charcoal/65 transition hover:bg-white/70 hover:text-charcoal">
+                <item.icon className="h-4 w-4" /> {item.label}
+              </Link>
+            ))}
+          </nav>
+        </aside>
+        <main>{children}</main>
+      </div>
+    </div>
+  );
+}

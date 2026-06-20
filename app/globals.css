@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { --background: #F8F6F0; --foreground: #1a1a1a; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  color: var(--foreground);
+  background:
+    radial-gradient(circle at 10% 8%, rgba(212,175,55,.22), transparent 26%),
+    radial-gradient(circle at 88% 16%, rgba(255,255,255,.96), transparent 28%),
+    linear-gradient(135deg, #fffdf7, #f1eadc 50%, #fff);
+}
+body:before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background-image: linear-gradient(rgba(26,26,26,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(26,26,26,.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: linear-gradient(to bottom, black, transparent 78%);
+}
+.glass { @apply border border-black/10 bg-white/60 shadow-luxury backdrop-blur-2xl; }
+.gold-text { background: linear-gradient(135deg, #b88a12, #f3d87f, #8f6910); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.shimmer { position: relative; overflow: hidden; }
+.shimmer:after { content: ""; position: absolute; inset: 0; background: linear-gradient(120deg, transparent, rgba(255,255,255,.55), transparent); transform: translateX(-100%); animation: shimmer 2.8s infinite; }
+.focus-ring { @apply focus:outline-none focus:ring-2 focus:ring-gold/50 focus:ring-offset-2 focus:ring-offset-cream; }
