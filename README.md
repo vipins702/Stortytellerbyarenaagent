@@ -405,3 +405,89 @@ POST /api/storefront/:slug/checkout
 ```
 
 This creates Stripe Checkout sessions from DB products.
+
+## Search, discovery and onboarding layer
+
+### Search Presence
+
+Added:
+
+```txt
+/seo
+PATCH /api/pages/:pageId/seo
+POST  /api/seo/suggest
+```
+
+The search settings are stored in the existing `Page.seo` JSON field and include:
+
+- search title
+- meta description
+- keywords
+- canonical URL
+- open graph image
+- no-index control
+- structured data type
+
+The suggestion tool prepares refined keyword and page ideas using Gemini when available, with a local fallback when the key is missing.
+
+### Structured data
+
+Published pages now include JSON-LD for:
+
+- WebSite
+- Store
+- Organization
+- LocalBusiness
+- ProductCollection
+- OfferCatalog when products exist
+
+This is rendered on:
+
+```txt
+/s/:slug
+```
+
+### Sitemap and robots
+
+Added platform files:
+
+```txt
+/sitemap.xml
+/robots.txt
+```
+
+Added per-site files:
+
+```txt
+/s/:slug/sitemap.xml
+/s/:slug/robots.txt
+```
+
+The per-site robots file respects the page no-index setting.
+
+### Tenant onboarding
+
+Added:
+
+```txt
+/onboarding
+```
+
+The onboarding flow helps a tenant:
+
+1. create a site
+2. add products and visuals
+3. review search settings
+4. connect a domain
+5. invite teammates
+
+### Human user guide
+
+Added:
+
+```txt
+/guide
+docs_TOOL_GUIDE.md
+```
+
+The guide uses plain human sentences and visual illustrations to help site owners launch without technical language.
