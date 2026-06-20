@@ -491,3 +491,75 @@ docs_TOOL_GUIDE.md
 ```
 
 The guide uses plain human sentences and visual illustrations to help site owners launch without technical language.
+
+## Latest production hardening layer
+
+### Protected routes
+
+Added `middleware.ts`. When Clerk keys are configured, workspace routes are protected. When Clerk keys are missing, local and preview builds continue to work with the development DB user.
+
+Protected areas include:
+
+```txt
+/dashboard
+/builder
+/cms
+/assets
+/seo
+/domains
+/team
+/commerce
+/ab-tests
+/analytics
+/versions
+/settings
+/billing
+```
+
+### Role and permission helper
+
+Added:
+
+```txt
+lib/permissions.ts
+```
+
+This centralizes role permissions for website read/write/publish, billing, team and commerce actions.
+
+### Scene upload inside builder
+
+The builder generation modal now supports uploading a scene or screenshot. It calls:
+
+```txt
+POST /api/ai/vision
+```
+
+The response is converted into editable page sections and can be saved to the database.
+
+### 3D model section
+
+Added a metadata-driven `model3d` component definition and public renderer support. This works with Vercel Blob GLB/GLTF uploads and gives published pages a premium 3D showcase section.
+
+### Domain verification hook
+
+Added:
+
+```txt
+POST /api/domains/:domainId/verify
+lib/vercel-domains.ts
+```
+
+If these env vars are set, the route talks to Vercel's domain APIs:
+
+```env
+VERCEL_API_TOKEN=""
+VERCEL_PROJECT_ID=""
+```
+
+If they are not set, the UI still gives useful DNS instructions without breaking the app.
+
+### Storefront order creation
+
+Stripe checkout completion now creates DB `Order` records for storefront purchases and tracks a `checkout_completed` analytics event.
+
+The existing billing subscription webhook behavior is preserved.

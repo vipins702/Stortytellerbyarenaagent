@@ -14,18 +14,37 @@ export async function POST(request: Request) {
 
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as any;
-      const userId = session.metadata?.userId;
-      const plan = session.metadata?.plan || "Pro";
-      if (userId) {
-        await prisma.subscription.create({
+      if (session.metadata?.type === "storefront_order" && session.metadata?.websiteId) {
+        const websiteId = String(session.metadata.websiteId);
+        const items = session.metadata.items ? JSON.parse(session.metadata.items) : [];
+        await prisma.order.create({
           data: {
-            userId,
-            plan,
-            stripeCustomerId: String(session.customer || ""),
-            stripeSubscriptionId: String(session.subscription || ""),
-            status: "active"
+            websiteId,
+            customerName: session.customer_details?.name || session.customer_email || "Storefront Customer",
+            customerEmail: session.customer_details?.email || session.customer_email || undefined,
+            total: Number(session.amount_total || 0),
+            currency: session.currency || "usd",
+            status: "Paid",
+            stripePaymentId: String(session.payment_intent || session.id),
+            items,
+            metadata: { source: "stripe_checkout", checkoutSessionId: session.id }
           }
         });
+        await prisma.analyticsEvent.create({ data: { websiteId, type: "checkout_completed", path: `/s/${session.metadata.slug || ""}`, metadata: { amount: session.amount_total, sessionId: session.id } } });
+      } else {
+        const userId = session.metadata?.userId;
+        const plan = session.metadata?.plan || "Pro";
+        if (userId) {
+          await prisma.subscription.create({
+            data: {
+              userId,
+              plan,
+              stripeCustomerId: String(session.customer || ""),
+              stripeSubscriptionId: String(session.subscription || ""),
+              status: "active"
+            }
+          });
+        }
       }
     }
 

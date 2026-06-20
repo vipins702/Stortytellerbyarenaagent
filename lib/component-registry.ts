@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const sectionTypes = ["hero", "features", "gallery", "products", "lead"] as const;
+export const sectionTypes = ["hero", "features", "gallery", "products", "lead", "model3d"] as const;
 export const sectionTypeSchema = z.enum(sectionTypes);
 
 export const sectionSchema = z.object({
@@ -69,6 +69,20 @@ export const componentDefinitions = [
     schema: { title: { type: "string", label: "Title" }, limit: { type: "number", label: "Limit" } },
     defaults: { title: "Featured products", limit: 3 },
     metadata: { supports: ["productSource", "abTesting", "modelViewer"], premium: false }
+  },
+
+  {
+    type: "model3d",
+    label: "3D Model Showcase",
+    category: "Commerce",
+    description: "Premium GLB/GLTF product model section backed by Vercel Blob assets.",
+    schema: {
+      title: { type: "string", label: "Title" },
+      body: { type: "string", label: "Body" },
+      assetUrl: { type: "asset", label: "3D model URL" }
+    },
+    defaults: { title: "Explore every detail", body: "A closer look at the craftsmanship, materials and form.", assetUrl: "" },
+    metadata: { supports: ["modelViewer", "lighting", "commerce"], premium: true }
   },
   {
     type: "lead",

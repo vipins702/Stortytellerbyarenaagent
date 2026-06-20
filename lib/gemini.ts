@@ -10,7 +10,7 @@ export function getGeminiClient() {
 
 export const generatedSectionSchema = z.object({
   id: z.string(),
-  type: z.enum(["hero", "features", "gallery", "products", "lead"]),
+  type: z.enum(["hero", "features", "gallery", "products", "lead", "model3d"]),
   props: z.record(z.any()),
   animation: z.record(z.any()).default({}),
   metadata: z.record(z.any()).default({})
@@ -44,7 +44,7 @@ Brand style:
 - metadata-driven sections
 - premium animations
 
-Allowed section types: hero, features, gallery, products, lead.
+Allowed section types: hero, features, gallery, products, lead, model3d.
 Use this component registry as the contract: ${JSON.stringify(input.components)}
 
 User prompt: ${input.prompt}
@@ -57,7 +57,7 @@ Return only valid JSON matching this shape:
   "theme": { "background": "#F8F6F0", "accent": "#D4AF37", "text": "#1a1a1a", "fonts": { "heading": "Playfair Display", "body": "Inter" } },
   "seo": { "title": "string", "description": "string" },
   "sections": [
-    { "id": "string", "type": "hero|features|gallery|products|lead", "props": {}, "animation": {}, "metadata": {} }
+    { "id": "string", "type": "hero|features|gallery|products|lead|model3d", "props": {}, "animation": {}, "metadata": {} }
   ]
 }`
         }]

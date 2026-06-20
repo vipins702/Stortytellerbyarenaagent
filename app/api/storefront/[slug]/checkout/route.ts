@@ -26,7 +26,7 @@ export async function POST(request: Request, { params }: { params: { slug: strin
       line_items,
       success_url: `${origin}/s/${website.slug}?checkout=success`,
       cancel_url: `${origin}/s/${website.slug}?checkout=cancelled`,
-      metadata: { websiteId: website.id, slug: website.slug, type: "storefront_order" },
+      metadata: { websiteId: website.id, slug: website.slug, type: "storefront_order", items: JSON.stringify(input.items).slice(0, 450) },
       payment_intent_data: connected ? { application_fee_amount: Math.round(line_items.reduce((sum, li: any) => sum + li.price_data.unit_amount * li.quantity, 0) * 0.03) } : undefined
     }, connected ? { stripeAccount: connected } : undefined);
     await prisma.analyticsEvent.create({ data: { websiteId: website.id, type: "checkout_started", path: `/s/${website.slug}`, metadata: { itemCount: input.items.length } } });
