@@ -58,6 +58,8 @@ model User {
   memberships    Membership[]
   websites       Website[]     @relation("WebsiteOwner")
   subscriptions  Subscription[]
+  auditLogs      AuditLog[]
+  onboarding     OnboardingState?
   stripeConnectAccountId String?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
@@ -308,4 +310,47 @@ model ABVariant {
   sections  Json     @default("[]")
   metrics   Json     @default("{}")
   createdAt DateTime @default(now())
+}
+
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  resource  String
+  resourceId String?
+  metadata  Json     @default("{}")
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([createdAt])
+}
+
+model WebhookEvent {
+  id        String   @id
+  provider  String
+  type      String
+  processed Boolean  @default(false)
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([provider])
+  @@index([type])
+}
+
+model OnboardingState {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  completed   Boolean  @default(false)
+  currentStep Int      @default(1)
+  checklist   Json     @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

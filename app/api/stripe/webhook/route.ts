@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
+import { orderEmailHtml, sendEmail } from "@/lib/email";
 
 export async function POST(request: Request) {
   try {
@@ -11,13 +12,16 @@ export async function POST(request: Request) {
     const rawBody = await request.text();
     if (!signature || !process.env.STRIPE_WEBHOOK_SECRET) throw new Error("Missing Stripe webhook signature/secret");
     const event = stripe.webhooks.constructEvent(rawBody, signature, process.env.STRIPE_WEBHOOK_SECRET);
+    const existingEvent = await prisma.webhookEvent.findUnique({ where: { id: event.id } });
+    if (existingEvent?.processed) return NextResponse.json({ received: true, duplicate: true });
+    await prisma.webhookEvent.upsert({ where: { id: event.id }, update: { type: event.type, metadata: { receivedAt: new Date().toISOString() } }, create: { id: event.id, provider: "stripe", type: event.type, metadata: { receivedAt: new Date().toISOString() } } });
 
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as any;
       if (session.metadata?.type === "storefront_order" && session.metadata?.websiteId) {
         const websiteId = String(session.metadata.websiteId);
         const items = session.metadata.items ? JSON.parse(session.metadata.items) : [];
-        await prisma.order.create({
+        const order = await prisma.order.create({
           data: {
             websiteId,
             customerName: session.customer_details?.name || session.customer_email || "Storefront Customer",
@@ -28,8 +32,10 @@ export async function POST(request: Request) {
             stripePaymentId: String(session.payment_intent || session.id),
             items,
             metadata: { source: "stripe_checkout", checkoutSessionId: session.id }
-          }
+          },
+          include: { website: { include: { owner: true } } }
         });
+        await sendEmail({ to: order.website.owner.email, subject: `New order from ${order.website.name}`, html: orderEmailHtml({ websiteName: order.website.name, customerName: order.customerName, total: `${order.currency.toUpperCase()} ${(order.total / 100).toFixed(2)}` }) }).catch(() => null);
         await prisma.analyticsEvent.create({ data: { websiteId, type: "checkout_completed", path: `/s/${session.metadata.slug || ""}`, metadata: { amount: session.amount_total, sessionId: session.id } } });
       } else {
         const userId = session.metadata?.userId;
@@ -59,6 +65,7 @@ export async function POST(request: Request) {
       });
     }
 
+    await prisma.webhookEvent.update({ where: { id: event.id }, data: { processed: true } });
     return NextResponse.json({ received: true });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Webhook failed" }, { status: 400 });

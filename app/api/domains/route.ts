@@ -5,6 +5,8 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { assertDomainLimit } from "@/lib/plans";
+import { assertWebsitePermission } from "@/lib/permissions";
+import { audit } from "@/lib/audit";
 
 const schema = z.object({ websiteId: z.string(), hostname: z.string().min(3).max(255).toLowerCase() });
 
@@ -19,9 +21,10 @@ export async function POST(request: Request) {
     const user = await getCurrentUser();
     await assertDomainLimit(user.id);
     const input = schema.parse(await request.json());
-    const website = await prisma.website.findFirst({ where: { id: input.websiteId, ownerId: user.id } });
-    if (!website) return NextResponse.json({ error: "Website not found" }, { status: 404 });
+    await assertWebsitePermission({ userId: user.id, websiteId: input.websiteId, permission: "website:publish" });
+    const website = await prisma.website.findUniqueOrThrow({ where: { id: input.websiteId } });
     const domain = await prisma.domain.create({ data: { websiteId: website.id, hostname: input.hostname.replace(/^https?:\/\//, "").replace(/\/$/, ""), metadata: { provider: "vercel", instructions: { type: "CNAME", name: "www", value: "cname.vercel-dns.com" } } } });
+    await audit({ userId: user.id, action: "domain.create", resource: "Domain", resourceId: domain.id, request, metadata: { hostname: domain.hostname } });
     return NextResponse.json({ data: domain }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Unable to add domain" }, { status: 400 });

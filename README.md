@@ -563,3 +563,70 @@ If they are not set, the UI still gives useful DNS instructions without breaking
 Stripe checkout completion now creates DB `Order` records for storefront purchases and tracks a `checkout_completed` analytics event.
 
 The existing billing subscription webhook behavior is preserved.
+
+## Continuation hardening layer
+
+### Audit logs
+
+Added `AuditLog` model and `lib/audit.ts`. Important workspace actions now write audit records without blocking user flows.
+
+Tracked actions now include:
+
+- page section updates
+- page search updates
+- product create/update/delete
+- asset uploads
+- website publishing
+- domain creation
+- team invites
+- Stripe Connect onboarding start
+
+### Lightweight rate limiting
+
+Added `lib/rate-limit.ts` for server-side request throttling. It currently protects high-frequency routes such as page saving, lead capture and asset uploads. For large production traffic, replace this with Upstash Redis or Vercel KV while keeping the same helper contract.
+
+### Webhook idempotency
+
+Added `WebhookEvent` model. Stripe webhooks now store processed event IDs and skip duplicate processed events.
+
+### Email notifications
+
+Added `lib/email.ts`, ready for Resend.
+
+New env vars:
+
+```env
+RESEND_API_KEY=""
+EMAIL_FROM="Aurelia <hello@yourdomain.com>"
+```
+
+Notifications now send when configured:
+
+- new published-site lead
+- new storefront order
+
+If Resend variables are missing, email is skipped safely.
+
+### Onboarding state
+
+Added `OnboardingState` model and:
+
+```txt
+GET   /api/onboarding
+PATCH /api/onboarding
+```
+
+The onboarding page now records current step, checklist and completion state in the database.
+
+### Permission enforcement started
+
+The permission helper is now applied to several important write actions:
+
+- page section save
+- page search settings save
+- product create/update/delete
+- asset upload
+- website publish
+- domain creation
+
+Remaining write APIs should continue adopting the same `assertWebsitePermission` helper.

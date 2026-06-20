@@ -5,6 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { uploadBufferToBlob } from "@/lib/blob";
 import { slugify } from "@/lib/utils";
+import { assertWebsitePermission } from "@/lib/permissions";
+import { audit } from "@/lib/audit";
+import { assertRateLimit, rateLimitKey } from "@/lib/rate-limit";
 
 export async function GET(_: Request, { params }: { params: { websiteId: string } }) {
   const user = await getCurrentUser();
@@ -15,8 +18,8 @@ export async function GET(_: Request, { params }: { params: { websiteId: string 
 export async function POST(request: Request, { params }: { params: { websiteId: string } }) {
   try {
     const user = await getCurrentUser();
-    const website = await prisma.website.findFirst({ where: { id: params.websiteId, ownerId: user.id } });
-    if (!website) return NextResponse.json({ error: "Website not found" }, { status: 404 });
+    assertRateLimit({ key: rateLimitKey(request, "asset-upload"), limit: 30, windowMs: 60_000 });
+    await assertWebsitePermission({ userId: user.id, websiteId: params.websiteId, permission: "website:write" });
 
     const form = await request.formData();
     const file = form.get("file");
@@ -39,6 +42,7 @@ export async function POST(request: Request, { params }: { params: { websiteId: 
       }
     });
 
+    await audit({ userId: user.id, action: "asset.upload", resource: "Asset", resourceId: asset.id, request, metadata: { websiteId: params.websiteId, filename: file.name } });
     return NextResponse.json({ data: asset }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Unable to upload asset" }, { status: 400 });

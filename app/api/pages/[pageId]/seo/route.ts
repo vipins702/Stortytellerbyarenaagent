@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { assertWebsitePermission } from "@/lib/permissions";
+import { audit } from "@/lib/audit";
 
 const schema = z.object({
   title: z.string().min(5).max(70),
@@ -19,9 +21,11 @@ export async function PATCH(request: Request, { params }: { params: { pageId: st
   try {
     const user = await getCurrentUser();
     const input = schema.parse(await request.json());
-    const page = await prisma.page.findFirst({ where: { id: params.pageId, website: { ownerId: user.id } } });
+    const page = await prisma.page.findUnique({ where: { id: params.pageId } });
     if (!page) return NextResponse.json({ error: "Page not found" }, { status: 404 });
+    await assertWebsitePermission({ userId: user.id, websiteId: page.websiteId, permission: "website:write" });
     const updated = await prisma.page.update({ where: { id: page.id }, data: { seo: input } });
+    await audit({ userId: user.id, action: "page.update_seo", resource: "Page", resourceId: page.id, request, metadata: { title: input.title } });
     return NextResponse.json({ data: updated });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Unable to save search settings" }, { status: 400 });
