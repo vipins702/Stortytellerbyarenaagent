@@ -58,7 +58,7 @@ body:after {
 /* Dark-theme compatibility for existing utility-heavy screens */
 .bg-white, .bg-white\/70, .bg-white\/75, .bg-white\/60, .bg-white\/65 { background-color: rgba(13,13,21,.72) !important; }
 .bg-cream, .bg-cream\/75 { background-color: rgba(5,5,10,.78) !important; }
-.bg-charcoal { background-color: #F8FAFC !important; color: #05050A !important; }
+.bg-charcoal { background-color: rgba(255,255,255,.10) !important; color: #F8FAFC !important; }
 .text-charcoal { color: #F8FAFC !important; }
 .text-charcoal\/70 { color: rgba(248,250,252,.70) !important; }
 .text-charcoal\/65 { color: rgba(248,250,252,.65) !important; }
@@ -73,3 +73,19 @@ body:after {
 input, textarea, select { color: #F8FAFC; background-color: rgba(255,255,255,.055) !important; border-color: rgba(255,255,255,.13) !important; }
 input::placeholder, textarea::placeholder { color: rgba(248,250,252,.38); }
 pre { border: 1px solid rgba(255,255,255,.10); }
+
+
+/* Contrast fixes for older light-theme utility classes inside the new dark UI */
+.text-black { color: #F8FAFC !important; }
+.text-black\/60 { color: rgba(248,250,252,.60) !important; }
+.text-black\/55 { color: rgba(248,250,252,.55) !important; }
+.text-black\/50 { color: rgba(248,250,252,.50) !important; }
+.text-black\/45 { color: rgba(248,250,252,.45) !important; }
+.text-cream { color: #F8FAFC !important; }
+.bg-\[\#F8F6F0\], .bg-\[\#F8F6F0\]\/80 { background-color: #05050A !important; }
+.text-\[\#1a1a1a\] { color: #F8FAFC !important; }
+.bg-\[\#D4AF37\] { background: linear-gradient(90deg, #8B5CF6, #22D3EE) !important; }
+.from-\[\#D4AF37\] { --tw-gradient-from: #8B5CF6 var(--tw-gradient-from-position) !important; --tw-gradient-to: rgba(139,92,246,0) var(--tw-gradient-to-position) !important; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important; }
+.to-\[\#92701c\] { --tw-gradient-to: #22D3EE var(--tw-gradient-to-position) !important; }
+.text-\[\#8a6818\], .text-\[\#7a5b12\], .text-\[\#755812\] { color: #C4B5FD !important; }
+.border-\[\#D4AF37\]\/30 { border-color: rgba(139,92,246,.35) !important; }

@@ -16,8 +16,8 @@ const config: Config = {
         panel: "#0D0D15"
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
-        serif: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"]
+        sans: ["var(--font-inter)", "Inter", "Geist", "ui-sans-serif", "system-ui", "sans-serif"],
+        serif: ["var(--font-inter)", "Inter", "Geist", "ui-sans-serif", "system-ui", "sans-serif"]
       },
       boxShadow: {
         luxury: "0 28px 100px rgba(0, 0, 0, 0.42)",
