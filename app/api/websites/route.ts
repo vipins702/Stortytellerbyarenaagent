@@ -31,6 +31,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser();
+    const tenantId = user.primaryTenantId || undefined;
     await assertWebsiteLimit(user.id);
     const input = createWebsiteSchema.parse(await request.json());
     const template = input.templateId ? await prisma.template.findUnique({ where: { id: input.templateId } }) : null;
@@ -39,13 +40,15 @@ export async function POST(request: Request) {
     const theme = template?.theme ?? { background: "#F8F6F0", accent: "#D4AF37", text: "#1a1a1a", fonts: { heading: "Playfair Display", body: "Inter" } };
     const website = await prisma.website.create({
       data: {
+        tenantId,
+        userId: user.id,
         ownerId: user.id,
         name: input.name,
         slug,
         industry: input.industry,
         theme,
         metadata: { createdFrom: template ? "template" : "blank", templateId: template?.id },
-        pages: { create: { title: "Home", path: "/", sections, seo: { title: input.name, description: `Premium website for ${input.name}` } } }
+        pages: { create: { tenantId, userId: user.id, title: "Home", path: "/", sections, seo: { title: input.name, description: `Premium website for ${input.name}` } } }
       },
       include: { pages: true }
     });

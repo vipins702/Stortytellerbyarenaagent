@@ -22,6 +22,7 @@ CREATE TABLE "User" (
     "clerkId" TEXT,
     "email" TEXT NOT NULL,
     "name" TEXT,
+    "primaryTenantId" TEXT,
     "stripeConnectAccountId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -30,7 +31,72 @@ CREATE TABLE "User" (
 );
 
 -- CreateTable
+CREATE TABLE "Tenant" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "ownerUserId" TEXT,
+    "plan" "SubscriptionPlan" NOT NULL DEFAULT 'Free',
+    "status" TEXT NOT NULL DEFAULT 'Active',
+    "metadata" JSONB NOT NULL DEFAULT '{}',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Tenant_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "TenantMember" (
+    "id" TEXT NOT NULL,
+    "tenantId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "role" "Role" NOT NULL DEFAULT 'Editor',
+    "status" TEXT NOT NULL DEFAULT 'Active',
+    "metadata" JSONB NOT NULL DEFAULT '{}',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "TenantMember_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "TenantInvite" (
+    "id" TEXT NOT NULL,
+    "tenantId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "role" "Role" NOT NULL DEFAULT 'Editor',
+    "tokenHash" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'Pending',
+    "expiresAt" TIMESTAMP(3),
+    "acceptedAt" TIMESTAMP(3),
+    "metadata" JSONB NOT NULL DEFAULT '{}',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "TenantInvite_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "TenantSettings" (
+    "id" TEXT NOT NULL,
+    "tenantId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "branding" JSONB NOT NULL DEFAULT '{}',
+    "domains" JSONB NOT NULL DEFAULT '{}',
+    "billing" JSONB NOT NULL DEFAULT '{}',
+    "security" JSONB NOT NULL DEFAULT '{}',
+    "metadata" JSONB NOT NULL DEFAULT '{}',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "TenantSettings_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Organization" (
+    "tenantId" TEXT,
+    "userId" TEXT,
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
@@ -42,6 +108,7 @@ CREATE TABLE "Organization" (
 
 -- CreateTable
 CREATE TABLE "Membership" (
+    "tenantId" TEXT,
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "organizationId" TEXT NOT NULL,
@@ -53,6 +120,8 @@ CREATE TABLE "Membership" (
 
 -- CreateTable
 CREATE TABLE "Website" (
+    "tenantId" TEXT,
+    "userId" TEXT,
     "id" TEXT NOT NULL,
     "ownerId" TEXT NOT NULL,
     "organizationId" TEXT,
@@ -70,6 +139,8 @@ CREATE TABLE "Website" (
 
 -- CreateTable
 CREATE TABLE "Page" (
+    "tenantId" TEXT,
+    "userId" TEXT,
     "id" TEXT NOT NULL,
     "websiteId" TEXT NOT NULL,
     "title" TEXT NOT NULL,
@@ -84,6 +155,8 @@ CREATE TABLE "Page" (
 
 -- CreateTable
 CREATE TABLE "Template" (
+    "tenantId" TEXT,
+    "userId" TEXT,
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
@@ -101,6 +174,8 @@ CREATE TABLE "Template" (
 
 -- CreateTable
 CREATE TABLE "ComponentDefinition" (
+    "tenantId" TEXT,
+    "userId" TEXT,
     "id" TEXT NOT NULL,
     "type" TEXT NOT NULL,
     "label" TEXT NOT NULL,
@@ -118,6 +193,8 @@ CREATE TABLE "ComponentDefinition" (
 
 -- CreateTable
 CREATE TABLE "Asset" (
+    "tenantId" TEXT,
+    "userId" TEXT,
     "id" TEXT NOT NULL,
     "websiteId" TEXT NOT NULL,
     "url" TEXT NOT NULL,
@@ -132,6 +209,8 @@ CREATE TABLE "Asset" (
 
 -- CreateTable
 CREATE TABLE "Product" (
+    "tenantId" TEXT,
+    "userId" TEXT,
     "id" TEXT NOT NULL,
     "websiteId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -151,6 +230,8 @@ CREATE TABLE "Product" (
 
 -- CreateTable
 CREATE TABLE "Lead" (
+    "tenantId" TEXT,
+    "userId" TEXT,
     "id" TEXT NOT NULL,
     "websiteId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -168,6 +249,8 @@ CREATE TABLE "Lead" (
 
 -- CreateTable
 CREATE TABLE "Order" (
+    "tenantId" TEXT,
+    "userId" TEXT,
     "id" TEXT NOT NULL,
     "websiteId" TEXT NOT NULL,
     "customerName" TEXT NOT NULL,
@@ -186,6 +269,8 @@ CREATE TABLE "Order" (
 
 -- CreateTable
 CREATE TABLE "PublishVersion" (
+    "tenantId" TEXT,
+    "userId" TEXT,
     "id" TEXT NOT NULL,
     "websiteId" TEXT NOT NULL,
     "version" INTEGER NOT NULL,
@@ -197,6 +282,7 @@ CREATE TABLE "PublishVersion" (
 
 -- CreateTable
 CREATE TABLE "Subscription" (
+    "tenantId" TEXT,
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "plan" "SubscriptionPlan" NOT NULL DEFAULT 'Free',
@@ -212,6 +298,8 @@ CREATE TABLE "Subscription" (
 
 -- CreateTable
 CREATE TABLE "AnalyticsEvent" (
+    "tenantId" TEXT,
+    "userId" TEXT,
     "id" TEXT NOT NULL,
     "websiteId" TEXT NOT NULL,
     "type" TEXT NOT NULL,
@@ -226,6 +314,8 @@ CREATE TABLE "AnalyticsEvent" (
 
 -- CreateTable
 CREATE TABLE "Domain" (
+    "tenantId" TEXT,
+    "userId" TEXT,
     "id" TEXT NOT NULL,
     "websiteId" TEXT NOT NULL,
     "hostname" TEXT NOT NULL,
@@ -240,6 +330,8 @@ CREATE TABLE "Domain" (
 
 -- CreateTable
 CREATE TABLE "ABTest" (
+    "tenantId" TEXT,
+    "userId" TEXT,
     "id" TEXT NOT NULL,
     "websiteId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -255,6 +347,8 @@ CREATE TABLE "ABTest" (
 
 -- CreateTable
 CREATE TABLE "ABVariant" (
+    "tenantId" TEXT,
+    "userId" TEXT,
     "id" TEXT NOT NULL,
     "testId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -268,6 +362,7 @@ CREATE TABLE "ABVariant" (
 
 -- CreateTable
 CREATE TABLE "AuditLog" (
+    "tenantId" TEXT,
     "id" TEXT NOT NULL,
     "userId" TEXT,
     "action" TEXT NOT NULL,
@@ -283,6 +378,8 @@ CREATE TABLE "AuditLog" (
 
 -- CreateTable
 CREATE TABLE "WebhookEvent" (
+    "tenantId" TEXT,
+    "userId" TEXT,
     "id" TEXT NOT NULL,
     "provider" TEXT NOT NULL,
     "type" TEXT NOT NULL,
@@ -296,6 +393,7 @@ CREATE TABLE "WebhookEvent" (
 
 -- CreateTable
 CREATE TABLE "OnboardingState" (
+    "tenantId" TEXT,
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "completed" BOOLEAN NOT NULL DEFAULT false,
@@ -309,6 +407,8 @@ CREATE TABLE "OnboardingState" (
 
 -- CreateTable
 CREATE TABLE "ProductVariant" (
+    "tenantId" TEXT,
+    "userId" TEXT,
     "id" TEXT NOT NULL,
     "productId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -324,6 +424,7 @@ CREATE TABLE "ProductVariant" (
 
 -- CreateTable
 CREATE TABLE "GenerationJob" (
+    "tenantId" TEXT,
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "websiteId" TEXT,
@@ -333,6 +434,10 @@ CREATE TABLE "GenerationJob" (
     "currentStep" TEXT,
     "result" JSONB NOT NULL DEFAULT '{}',
     "error" TEXT,
+    "inputTokens" INTEGER NOT NULL DEFAULT 0,
+    "outputTokens" INTEGER NOT NULL DEFAULT 0,
+    "totalTokens" INTEGER NOT NULL DEFAULT 0,
+    "estimatedCostCents" INTEGER NOT NULL DEFAULT 0,
     "metadata" JSONB NOT NULL DEFAULT '{}',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -342,6 +447,8 @@ CREATE TABLE "GenerationJob" (
 
 -- CreateTable
 CREATE TABLE "GenerationStep" (
+    "tenantId" TEXT,
+    "userId" TEXT,
     "id" TEXT NOT NULL,
     "jobId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -349,6 +456,10 @@ CREATE TABLE "GenerationStep" (
     "input" JSONB NOT NULL DEFAULT '{}',
     "output" JSONB NOT NULL DEFAULT '{}',
     "error" TEXT,
+    "inputTokens" INTEGER NOT NULL DEFAULT 0,
+    "outputTokens" INTEGER NOT NULL DEFAULT 0,
+    "totalTokens" INTEGER NOT NULL DEFAULT 0,
+    "estimatedCostCents" INTEGER NOT NULL DEFAULT 0,
     "startedAt" TIMESTAMP(3),
     "endedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -359,6 +470,8 @@ CREATE TABLE "GenerationStep" (
 
 -- CreateTable
 CREATE TABLE "GenerationAsset" (
+    "tenantId" TEXT,
+    "userId" TEXT,
     "id" TEXT NOT NULL,
     "jobId" TEXT NOT NULL,
     "assetId" TEXT NOT NULL,
@@ -369,6 +482,67 @@ CREATE TABLE "GenerationAsset" (
     CONSTRAINT "GenerationAsset_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "OnboardingStep" (
+    "tenantId" TEXT,
+    "userId" TEXT,
+    "id" TEXT NOT NULL,
+    "onboardingId" TEXT NOT NULL,
+    "key" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'Pending',
+    "completedAt" TIMESTAMP(3),
+    "metadata" JSONB NOT NULL DEFAULT '{}',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "OnboardingStep_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "AIProviderConfig" (
+    "tenantId" TEXT,
+    "userId" TEXT,
+    "id" TEXT NOT NULL,
+    "provider" TEXT NOT NULL,
+    "label" TEXT NOT NULL,
+    "encryptedApiKey" TEXT,
+    "keyLast4" TEXT,
+    "defaultTextModel" TEXT,
+    "defaultImageModel" TEXT,
+    "defaultCodeModel" TEXT,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "metadata" JSONB NOT NULL DEFAULT '{}',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "AIProviderConfig_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "AIUsageEvent" (
+    "tenantId" TEXT,
+    "userId" TEXT,
+    "id" TEXT NOT NULL,
+    "websiteId" TEXT,
+    "generationJobId" TEXT,
+    "provider" TEXT NOT NULL,
+    "model" TEXT NOT NULL,
+    "operation" TEXT NOT NULL,
+    "promptTokens" INTEGER NOT NULL DEFAULT 0,
+    "completionTokens" INTEGER NOT NULL DEFAULT 0,
+    "totalTokens" INTEGER NOT NULL DEFAULT 0,
+    "imageCount" INTEGER NOT NULL DEFAULT 0,
+    "videoSeconds" INTEGER NOT NULL DEFAULT 0,
+    "estimatedCostCents" INTEGER NOT NULL DEFAULT 0,
+    "latencyMs" INTEGER NOT NULL DEFAULT 0,
+    "status" TEXT NOT NULL DEFAULT 'Completed',
+    "metadata" JSONB NOT NULL DEFAULT '{}',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "AIUsageEvent_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_clerkId_key" ON "User"("clerkId");
 
@@ -376,7 +550,61 @@ CREATE UNIQUE INDEX "User_clerkId_key" ON "User"("clerkId");
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Tenant_slug_key" ON "Tenant"("slug");
+
+-- CreateIndex
+CREATE INDEX "Tenant_ownerUserId_idx" ON "Tenant"("ownerUserId");
+
+-- CreateIndex
+CREATE INDEX "Tenant_status_idx" ON "Tenant"("status");
+
+-- CreateIndex
+CREATE INDEX "TenantMember_tenantId_idx" ON "TenantMember"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "TenantMember_userId_idx" ON "TenantMember"("userId");
+
+-- CreateIndex
+CREATE INDEX "TenantMember_role_idx" ON "TenantMember"("role");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "TenantMember_tenantId_userId_key" ON "TenantMember"("tenantId", "userId");
+
+-- CreateIndex
+CREATE INDEX "TenantInvite_tenantId_idx" ON "TenantInvite"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "TenantInvite_userId_idx" ON "TenantInvite"("userId");
+
+-- CreateIndex
+CREATE INDEX "TenantInvite_email_idx" ON "TenantInvite"("email");
+
+-- CreateIndex
+CREATE INDEX "TenantInvite_status_idx" ON "TenantInvite"("status");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "TenantSettings_tenantId_key" ON "TenantSettings"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "TenantSettings_tenantId_idx" ON "TenantSettings"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "TenantSettings_userId_idx" ON "TenantSettings"("userId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Organization_slug_key" ON "Organization"("slug");
+
+-- CreateIndex
+CREATE INDEX "Organization_tenantId_idx" ON "Organization"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "Organization_userId_idx" ON "Organization"("userId");
+
+-- CreateIndex
+CREATE INDEX "Membership_tenantId_idx" ON "Membership"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "Membership_userId_idx" ON "Membership"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Membership_userId_organizationId_key" ON "Membership"("userId", "organizationId");
@@ -391,7 +619,19 @@ CREATE INDEX "Website_ownerId_idx" ON "Website"("ownerId");
 CREATE INDEX "Website_organizationId_idx" ON "Website"("organizationId");
 
 -- CreateIndex
+CREATE INDEX "Website_tenantId_idx" ON "Website"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "Website_userId_idx" ON "Website"("userId");
+
+-- CreateIndex
 CREATE INDEX "Page_websiteId_idx" ON "Page"("websiteId");
+
+-- CreateIndex
+CREATE INDEX "Page_tenantId_idx" ON "Page"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "Page_userId_idx" ON "Page"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Page_websiteId_path_key" ON "Page"("websiteId", "path");
@@ -400,13 +640,37 @@ CREATE UNIQUE INDEX "Page_websiteId_path_key" ON "Page"("websiteId", "path");
 CREATE UNIQUE INDEX "Template_slug_key" ON "Template"("slug");
 
 -- CreateIndex
+CREATE INDEX "Template_tenantId_idx" ON "Template"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "Template_userId_idx" ON "Template"("userId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "ComponentDefinition_type_key" ON "ComponentDefinition"("type");
+
+-- CreateIndex
+CREATE INDEX "ComponentDefinition_tenantId_idx" ON "ComponentDefinition"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "ComponentDefinition_userId_idx" ON "ComponentDefinition"("userId");
 
 -- CreateIndex
 CREATE INDEX "Asset_websiteId_idx" ON "Asset"("websiteId");
 
 -- CreateIndex
+CREATE INDEX "Asset_tenantId_idx" ON "Asset"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "Asset_userId_idx" ON "Asset"("userId");
+
+-- CreateIndex
 CREATE INDEX "Product_websiteId_idx" ON "Product"("websiteId");
+
+-- CreateIndex
+CREATE INDEX "Product_tenantId_idx" ON "Product"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "Product_userId_idx" ON "Product"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Product_websiteId_slug_key" ON "Product"("websiteId", "slug");
@@ -415,16 +679,37 @@ CREATE UNIQUE INDEX "Product_websiteId_slug_key" ON "Product"("websiteId", "slug
 CREATE INDEX "Lead_websiteId_idx" ON "Lead"("websiteId");
 
 -- CreateIndex
+CREATE INDEX "Lead_tenantId_idx" ON "Lead"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "Lead_userId_idx" ON "Lead"("userId");
+
+-- CreateIndex
 CREATE INDEX "Order_websiteId_idx" ON "Order"("websiteId");
 
 -- CreateIndex
+CREATE INDEX "Order_tenantId_idx" ON "Order"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "Order_userId_idx" ON "Order"("userId");
+
+-- CreateIndex
 CREATE INDEX "PublishVersion_websiteId_idx" ON "PublishVersion"("websiteId");
+
+-- CreateIndex
+CREATE INDEX "PublishVersion_tenantId_idx" ON "PublishVersion"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "PublishVersion_userId_idx" ON "PublishVersion"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "PublishVersion_websiteId_version_key" ON "PublishVersion"("websiteId", "version");
 
 -- CreateIndex
 CREATE INDEX "Subscription_userId_idx" ON "Subscription"("userId");
+
+-- CreateIndex
+CREATE INDEX "Subscription_tenantId_idx" ON "Subscription"("tenantId");
 
 -- CreateIndex
 CREATE INDEX "AnalyticsEvent_websiteId_idx" ON "AnalyticsEvent"("websiteId");
@@ -436,13 +721,37 @@ CREATE INDEX "AnalyticsEvent_type_idx" ON "AnalyticsEvent"("type");
 CREATE INDEX "AnalyticsEvent_createdAt_idx" ON "AnalyticsEvent"("createdAt");
 
 -- CreateIndex
+CREATE INDEX "AnalyticsEvent_tenantId_idx" ON "AnalyticsEvent"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "AnalyticsEvent_userId_idx" ON "AnalyticsEvent"("userId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Domain_hostname_key" ON "Domain"("hostname");
 
 -- CreateIndex
 CREATE INDEX "Domain_websiteId_idx" ON "Domain"("websiteId");
 
 -- CreateIndex
+CREATE INDEX "Domain_tenantId_idx" ON "Domain"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "Domain_userId_idx" ON "Domain"("userId");
+
+-- CreateIndex
 CREATE INDEX "ABTest_websiteId_idx" ON "ABTest"("websiteId");
+
+-- CreateIndex
+CREATE INDEX "ABTest_tenantId_idx" ON "ABTest"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "ABTest_userId_idx" ON "ABTest"("userId");
+
+-- CreateIndex
+CREATE INDEX "ABVariant_tenantId_idx" ON "ABVariant"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "ABVariant_userId_idx" ON "ABVariant"("userId");
 
 -- CreateIndex
 CREATE INDEX "AuditLog_userId_idx" ON "AuditLog"("userId");
@@ -457,16 +766,37 @@ CREATE INDEX "AuditLog_resource_idx" ON "AuditLog"("resource");
 CREATE INDEX "AuditLog_createdAt_idx" ON "AuditLog"("createdAt");
 
 -- CreateIndex
+CREATE INDEX "AuditLog_tenantId_idx" ON "AuditLog"("tenantId");
+
+-- CreateIndex
 CREATE INDEX "WebhookEvent_provider_idx" ON "WebhookEvent"("provider");
 
 -- CreateIndex
 CREATE INDEX "WebhookEvent_type_idx" ON "WebhookEvent"("type");
 
 -- CreateIndex
+CREATE INDEX "WebhookEvent_tenantId_idx" ON "WebhookEvent"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "WebhookEvent_userId_idx" ON "WebhookEvent"("userId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "OnboardingState_userId_key" ON "OnboardingState"("userId");
 
 -- CreateIndex
+CREATE INDEX "OnboardingState_tenantId_idx" ON "OnboardingState"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "OnboardingState_userId_idx" ON "OnboardingState"("userId");
+
+-- CreateIndex
 CREATE INDEX "ProductVariant_productId_idx" ON "ProductVariant"("productId");
+
+-- CreateIndex
+CREATE INDEX "ProductVariant_tenantId_idx" ON "ProductVariant"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "ProductVariant_userId_idx" ON "ProductVariant"("userId");
 
 -- CreateIndex
 CREATE INDEX "GenerationJob_userId_idx" ON "GenerationJob"("userId");
@@ -481,10 +811,19 @@ CREATE INDEX "GenerationJob_status_idx" ON "GenerationJob"("status");
 CREATE INDEX "GenerationJob_type_idx" ON "GenerationJob"("type");
 
 -- CreateIndex
+CREATE INDEX "GenerationJob_tenantId_idx" ON "GenerationJob"("tenantId");
+
+-- CreateIndex
 CREATE INDEX "GenerationStep_jobId_idx" ON "GenerationStep"("jobId");
 
 -- CreateIndex
 CREATE INDEX "GenerationStep_status_idx" ON "GenerationStep"("status");
+
+-- CreateIndex
+CREATE INDEX "GenerationStep_tenantId_idx" ON "GenerationStep"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "GenerationStep_userId_idx" ON "GenerationStep"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "GenerationStep_jobId_name_key" ON "GenerationStep"("jobId", "name");
@@ -496,7 +835,67 @@ CREATE INDEX "GenerationAsset_jobId_idx" ON "GenerationAsset"("jobId");
 CREATE INDEX "GenerationAsset_assetId_idx" ON "GenerationAsset"("assetId");
 
 -- CreateIndex
+CREATE INDEX "GenerationAsset_tenantId_idx" ON "GenerationAsset"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "GenerationAsset_userId_idx" ON "GenerationAsset"("userId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "GenerationAsset_jobId_assetId_key" ON "GenerationAsset"("jobId", "assetId");
+
+-- CreateIndex
+CREATE INDEX "OnboardingStep_tenantId_idx" ON "OnboardingStep"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "OnboardingStep_userId_idx" ON "OnboardingStep"("userId");
+
+-- CreateIndex
+CREATE INDEX "OnboardingStep_onboardingId_idx" ON "OnboardingStep"("onboardingId");
+
+-- CreateIndex
+CREATE INDEX "OnboardingStep_status_idx" ON "OnboardingStep"("status");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "OnboardingStep_onboardingId_key_key" ON "OnboardingStep"("onboardingId", "key");
+
+-- CreateIndex
+CREATE INDEX "AIProviderConfig_tenantId_idx" ON "AIProviderConfig"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "AIProviderConfig_userId_idx" ON "AIProviderConfig"("userId");
+
+-- CreateIndex
+CREATE INDEX "AIProviderConfig_provider_idx" ON "AIProviderConfig"("provider");
+
+-- CreateIndex
+CREATE INDEX "AIProviderConfig_isActive_idx" ON "AIProviderConfig"("isActive");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "AIProviderConfig_tenantId_provider_label_key" ON "AIProviderConfig"("tenantId", "provider", "label");
+
+-- CreateIndex
+CREATE INDEX "AIUsageEvent_tenantId_idx" ON "AIUsageEvent"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "AIUsageEvent_userId_idx" ON "AIUsageEvent"("userId");
+
+-- CreateIndex
+CREATE INDEX "AIUsageEvent_websiteId_idx" ON "AIUsageEvent"("websiteId");
+
+-- CreateIndex
+CREATE INDEX "AIUsageEvent_generationJobId_idx" ON "AIUsageEvent"("generationJobId");
+
+-- CreateIndex
+CREATE INDEX "AIUsageEvent_provider_idx" ON "AIUsageEvent"("provider");
+
+-- CreateIndex
+CREATE INDEX "AIUsageEvent_model_idx" ON "AIUsageEvent"("model");
+
+-- CreateIndex
+CREATE INDEX "AIUsageEvent_operation_idx" ON "AIUsageEvent"("operation");
+
+-- CreateIndex
+CREATE INDEX "AIUsageEvent_createdAt_idx" ON "AIUsageEvent"("createdAt");
 
 -- AddForeignKey
 ALTER TABLE "Membership" ADD CONSTRAINT "Membership_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

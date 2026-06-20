@@ -51,22 +51,92 @@ enum Role {
 }
 
 model User {
-  id             String        @id @default(cuid())
-  clerkId        String?       @unique
-  email          String        @unique
-  name           String?
-  memberships    Membership[]
-  websites       Website[]     @relation("WebsiteOwner")
-  subscriptions  Subscription[]
-  auditLogs      AuditLog[]
-  onboarding     OnboardingState?
-  generationJobs GenerationJob[]
+  id                     String           @id @default(cuid())
+  clerkId                String?          @unique
+  email                  String           @unique
+  name                   String?
+  primaryTenantId        String?
+  memberships            Membership[]
+  websites               Website[]        @relation("WebsiteOwner")
+  subscriptions          Subscription[]
+  auditLogs              AuditLog[]
+  onboarding             OnboardingState?
+  generationJobs         GenerationJob[]
   stripeConnectAccountId String?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+}
+
+model Tenant {
+  id          String           @id @default(cuid())
+  name        String
+  slug        String           @unique
+  ownerUserId String?
+  plan        SubscriptionPlan @default(Free)
+  status      String           @default("Active")
+  metadata    Json             @default("{}")
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([ownerUserId])
+  @@index([status])
+}
+
+model TenantMember {
+  id        String   @id @default(cuid())
+  tenantId  String
+  userId    String
+  role      Role     @default(Editor)
+  status    String   @default("Active")
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, userId])
+  @@index([tenantId])
+  @@index([userId])
+  @@index([role])
+}
+
+model TenantInvite {
+  id         String    @id @default(cuid())
+  tenantId   String
+  userId     String
+  email      String
+  role       Role      @default(Editor)
+  tokenHash  String?
+  status     String    @default("Pending")
+  expiresAt  DateTime?
+  acceptedAt DateTime?
+  metadata   Json      @default("{}")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([email])
+  @@index([status])
+}
+
+model TenantSettings {
+  id        String   @id @default(cuid())
+  tenantId  String   @unique
+  userId    String
+  branding  Json     @default("{}")
+  domains   Json     @default("{}")
+  billing   Json     @default("{}")
+  security  Json     @default("{}")
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([userId])
 }
 
 model Organization {
+  tenantId    String?
+  userId      String?
   id          String       @id @default(cuid())
   name        String
   slug        String       @unique
@@ -74,9 +144,13 @@ model Organization {
   websites    Website[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+
+  @@index([tenantId])
+  @@index([userId])
 }
 
 model Membership {
+  tenantId       String?
   id             String       @id @default(cuid())
   userId         String
   organizationId String
@@ -86,20 +160,24 @@ model Membership {
   createdAt      DateTime     @default(now())
 
   @@unique([userId, organizationId])
+  @@index([tenantId])
+  @@index([userId])
 }
 
 model Website {
-  id             String          @id @default(cuid())
+  tenantId       String?
+  userId         String?
+  id             String           @id @default(cuid())
   ownerId        String
   organizationId String?
-  owner          User            @relation("WebsiteOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  organization   Organization?   @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  owner          User             @relation("WebsiteOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  organization   Organization?    @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   name           String
-  slug           String          @unique
-  status         WebsiteStatus   @default(Draft)
+  slug           String           @unique
+  status         WebsiteStatus    @default(Draft)
   industry       String?
-  theme          Json            @default("{}")
-  metadata       Json            @default("{}")
+  theme          Json             @default("{}")
+  metadata       Json             @default("{}")
   pages          Page[]
   assets         Asset[]
   products       Product[]
@@ -110,29 +188,37 @@ model Website {
   abTests        ABTest[]
   versions       PublishVersion[]
   generationJobs GenerationJob[]
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
   @@index([ownerId])
   @@index([organizationId])
+  @@index([tenantId])
+  @@index([userId])
 }
 
 model Page {
-  id          String   @id @default(cuid())
-  websiteId   String
-  website     Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
-  title       String
-  path        String
-  sections    Json     @default("[]")
-  seo         Json     @default("{}")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  tenantId  String?
+  userId    String?
+  id        String   @id @default(cuid())
+  websiteId String
+  website   Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  title     String
+  path      String
+  sections  Json     @default("[]")
+  seo       Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([websiteId, path])
   @@index([websiteId])
+  @@index([tenantId])
+  @@index([userId])
 }
 
 model Template {
+  tenantId    String?
+  userId      String?
   id          String   @id @default(cuid())
   name        String
   slug        String   @unique
@@ -144,9 +230,14 @@ model Template {
   sections    Json     @default("[]")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([userId])
 }
 
 model ComponentDefinition {
+  tenantId    String?
+  userId      String?
   id          String   @id @default(cuid())
   type        String   @unique
   label       String
@@ -158,80 +249,101 @@ model ComponentDefinition {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([userId])
 }
 
 model Asset {
-  id          String   @id @default(cuid())
-  websiteId   String
-  website     Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
-  url         String
-  key         String
-  type        String
-  filename    String
-  metadata    Json     @default("{}")
-  createdAt   DateTime @default(now())
+  tenantId         String?
+  userId           String?
+  id               String            @id @default(cuid())
+  websiteId        String
+  website          Website           @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  url              String
+  key              String
+  type             String
+  filename         String
+  metadata         Json              @default("{}")
+  createdAt        DateTime          @default(now())
   generationAssets GenerationAsset[]
 
   @@index([websiteId])
+  @@index([tenantId])
+  @@index([userId])
 }
 
 model Product {
-  id          String        @id @default(cuid())
+  tenantId    String?
+  userId      String?
+  id          String           @id @default(cuid())
   websiteId   String
-  website     Website       @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  website     Website          @relation(fields: [websiteId], references: [id], onDelete: Cascade)
   name        String
   slug        String
   description String?
   price       Int
-  currency    String        @default("usd")
-  stock       Int           @default(0)
+  currency    String           @default("usd")
+  stock       Int              @default(0)
   sku         String?
-  status      ProductStatus @default(Draft)
-  metadata    Json          @default("{}")
+  status      ProductStatus    @default(Draft)
+  metadata    Json             @default("{}")
   variants    ProductVariant[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
   @@unique([websiteId, slug])
   @@index([websiteId])
+  @@index([tenantId])
+  @@index([userId])
 }
 
 model Lead {
-  id          String     @id @default(cuid())
-  websiteId   String
-  website     Website    @relation(fields: [websiteId], references: [id], onDelete: Cascade)
-  name        String
-  email       String
-  phone       String?
-  source      String?
-  message     String?
-  status      LeadStatus @default(New)
-  metadata    Json       @default("{}")
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  tenantId  String?
+  userId    String?
+  id        String     @id @default(cuid())
+  websiteId String
+  website   Website    @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  name      String
+  email     String
+  phone     String?
+  source    String?
+  message   String?
+  status    LeadStatus @default(New)
+  metadata  Json       @default("{}")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   @@index([websiteId])
+  @@index([tenantId])
+  @@index([userId])
 }
 
 model Order {
-  id             String      @id @default(cuid())
-  websiteId      String
-  website        Website     @relation(fields: [websiteId], references: [id], onDelete: Cascade)
-  customerName   String
-  customerEmail  String?
-  total          Int
-  currency       String      @default("usd")
-  status         OrderStatus @default(Paid)
-  items          Json        @default("[]")
+  tenantId        String?
+  userId          String?
+  id              String      @id @default(cuid())
+  websiteId       String
+  website         Website     @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  customerName    String
+  customerEmail   String?
+  total           Int
+  currency        String      @default("usd")
+  status          OrderStatus @default(Paid)
+  items           Json        @default("[]")
   stripePaymentId String?
-  metadata       Json        @default("{}")
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  metadata        Json        @default("{}")
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
   @@index([websiteId])
+  @@index([tenantId])
+  @@index([userId])
 }
 
 model PublishVersion {
+  tenantId    String?
+  userId      String?
   id          String   @id @default(cuid())
   websiteId   String
   website     Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
@@ -241,24 +353,30 @@ model PublishVersion {
 
   @@unique([websiteId, version])
   @@index([websiteId])
-}
-
-model Subscription {
-  id                 String           @id @default(cuid())
-  userId             String
-  user               User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan               SubscriptionPlan @default(Free)
-  stripeCustomerId   String?
-  stripeSubscriptionId String?
-  status             String           @default("active")
-  currentPeriodEnd   DateTime?
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
-
+  @@index([tenantId])
   @@index([userId])
 }
 
+model Subscription {
+  tenantId             String?
+  id                   String           @id @default(cuid())
+  userId               String
+  user                 User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                 SubscriptionPlan @default(Free)
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  status               String           @default("active")
+  currentPeriodEnd     DateTime?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([tenantId])
+}
+
 model AnalyticsEvent {
+  tenantId  String?
+  userId    String?
   id        String   @id @default(cuid())
   websiteId String
   website   Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
@@ -272,40 +390,51 @@ model AnalyticsEvent {
   @@index([websiteId])
   @@index([type])
   @@index([createdAt])
+  @@index([tenantId])
+  @@index([userId])
 }
 
-
 model Domain {
-  id         String   @id @default(cuid())
+  tenantId   String?
+  userId     String?
+  id         String    @id @default(cuid())
   websiteId  String
-  website    Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
-  hostname   String   @unique
-  status     String   @default("Pending")
+  website    Website   @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  hostname   String    @unique
+  status     String    @default("Pending")
   verifiedAt DateTime?
-  metadata   Json     @default("{}")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  metadata   Json      @default("{}")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   @@index([websiteId])
+  @@index([tenantId])
+  @@index([userId])
 }
 
 model ABTest {
-  id          String      @id @default(cuid())
-  websiteId   String
-  website     Website     @relation(fields: [websiteId], references: [id], onDelete: Cascade)
-  name        String
-  status      String      @default("Draft")
-  targetPath  String      @default("/")
-  goal        String      @default("lead_submit")
-  metadata    Json        @default("{}")
-  variants    ABVariant[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  tenantId   String?
+  userId     String?
+  id         String      @id @default(cuid())
+  websiteId  String
+  website    Website     @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  name       String
+  status     String      @default("Draft")
+  targetPath String      @default("/")
+  goal       String      @default("lead_submit")
+  metadata   Json        @default("{}")
+  variants   ABVariant[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 
   @@index([websiteId])
+  @@index([tenantId])
+  @@index([userId])
 }
 
 model ABVariant {
+  tenantId  String?
+  userId    String?
   id        String   @id @default(cuid())
   testId    String
   test      ABTest   @relation(fields: [testId], references: [id], onDelete: Cascade)
@@ -314,28 +443,34 @@ model ABVariant {
   sections  Json     @default("[]")
   metrics   Json     @default("{}")
   createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([userId])
 }
 
-
 model AuditLog {
-  id        String   @id @default(cuid())
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  action    String
-  resource  String
+  tenantId   String?
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String
+  resource   String
   resourceId String?
-  metadata  Json     @default("{}")
-  ip        String?
-  userAgent String?
-  createdAt DateTime @default(now())
+  metadata   Json     @default("{}")
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
 
   @@index([userId])
   @@index([action])
   @@index([resource])
   @@index([createdAt])
+  @@index([tenantId])
 }
 
 model WebhookEvent {
+  tenantId  String?
+  userId    String?
   id        String   @id
   provider  String
   type      String
@@ -346,9 +481,12 @@ model WebhookEvent {
 
   @@index([provider])
   @@index([type])
+  @@index([tenantId])
+  @@index([userId])
 }
 
 model OnboardingState {
+  tenantId    String?
   id          String   @id @default(cuid())
   userId      String   @unique
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -357,10 +495,14 @@ model OnboardingState {
   checklist   Json     @default("{}")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([userId])
 }
 
-
 model ProductVariant {
+  tenantId  String?
+  userId    String?
   id        String   @id @default(cuid())
   productId String
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -373,53 +515,70 @@ model ProductVariant {
   updatedAt DateTime @updatedAt
 
   @@index([productId])
+  @@index([tenantId])
+  @@index([userId])
 }
 
-
 model GenerationJob {
-  id          String            @id @default(cuid())
-  userId      String
-  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  websiteId   String?
-  website     Website?          @relation(fields: [websiteId], references: [id], onDelete: SetNull)
-  type        String
-  prompt      String
-  status      String            @default("Queued")
-  currentStep String?
-  result      Json              @default("{}")
-  error       String?
-  metadata    Json              @default("{}")
-  steps       GenerationStep[]
-  assets      GenerationAsset[]
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  tenantId           String?
+  id                 String            @id @default(cuid())
+  userId             String
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  websiteId          String?
+  website            Website?          @relation(fields: [websiteId], references: [id], onDelete: SetNull)
+  type               String
+  prompt             String
+  status             String            @default("Queued")
+  currentStep        String?
+  result             Json              @default("{}")
+  error              String?
+  inputTokens        Int               @default(0)
+  outputTokens       Int               @default(0)
+  totalTokens        Int               @default(0)
+  estimatedCostCents Int               @default(0)
+  metadata           Json              @default("{}")
+  steps              GenerationStep[]
+  assets             GenerationAsset[]
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
 
   @@index([userId])
   @@index([websiteId])
   @@index([status])
   @@index([type])
+  @@index([tenantId])
 }
 
 model GenerationStep {
-  id        String        @id @default(cuid())
-  jobId     String
-  job       GenerationJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  name      String
-  status    String        @default("Pending")
-  input     Json          @default("{}")
-  output    Json          @default("{}")
-  error     String?
-  startedAt DateTime?
-  endedAt   DateTime?
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  tenantId           String?
+  userId             String?
+  id                 String        @id @default(cuid())
+  jobId              String
+  job                GenerationJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  name               String
+  status             String        @default("Pending")
+  input              Json          @default("{}")
+  output             Json          @default("{}")
+  error              String?
+  inputTokens        Int           @default(0)
+  outputTokens       Int           @default(0)
+  totalTokens        Int           @default(0)
+  estimatedCostCents Int           @default(0)
+  startedAt          DateTime?
+  endedAt            DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
 
   @@unique([jobId, name])
   @@index([jobId])
   @@index([status])
+  @@index([tenantId])
+  @@index([userId])
 }
 
 model GenerationAsset {
+  tenantId  String?
+  userId    String?
   id        String        @id @default(cuid())
   jobId     String
   job       GenerationJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
@@ -432,4 +591,79 @@ model GenerationAsset {
   @@unique([jobId, assetId])
   @@index([jobId])
   @@index([assetId])
+  @@index([tenantId])
+  @@index([userId])
+}
+
+model OnboardingStep {
+  tenantId     String?
+  userId       String?
+  id           String    @id @default(cuid())
+  onboardingId String
+  key          String
+  title        String
+  status       String    @default("Pending")
+  completedAt  DateTime?
+  metadata     Json      @default("{}")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([onboardingId, key])
+  @@index([tenantId])
+  @@index([userId])
+  @@index([onboardingId])
+  @@index([status])
+}
+
+model AIProviderConfig {
+  tenantId          String?
+  userId            String?
+  id                String   @id @default(cuid())
+  provider          String
+  label             String
+  encryptedApiKey   String?
+  keyLast4          String?
+  defaultTextModel  String?
+  defaultImageModel String?
+  defaultCodeModel  String?
+  isActive          Boolean  @default(true)
+  metadata          Json     @default("{}")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([tenantId, provider, label])
+  @@index([tenantId])
+  @@index([userId])
+  @@index([provider])
+  @@index([isActive])
+}
+
+model AIUsageEvent {
+  tenantId           String?
+  userId             String?
+  id                 String   @id @default(cuid())
+  websiteId          String?
+  generationJobId    String?
+  provider           String
+  model              String
+  operation          String
+  promptTokens       Int      @default(0)
+  completionTokens   Int      @default(0)
+  totalTokens        Int      @default(0)
+  imageCount         Int      @default(0)
+  videoSeconds       Int      @default(0)
+  estimatedCostCents Int      @default(0)
+  latencyMs          Int      @default(0)
+  status             String   @default("Completed")
+  metadata           Json     @default("{}")
+  createdAt          DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([websiteId])
+  @@index([generationJobId])
+  @@index([provider])
+  @@index([model])
+  @@index([operation])
+  @@index([createdAt])
 }

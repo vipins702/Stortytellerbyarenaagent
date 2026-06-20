@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { ensureTenantForUser } from "@/lib/tenant";
 
 /**
  * Clerk-ready auth bridge.
@@ -12,11 +13,13 @@ export async function getCurrentUser() {
       const clerkUser = await currentUser();
       if (clerkUser?.id) {
         const email = clerkUser.emailAddresses[0]?.emailAddress || `${clerkUser.id}@clerk.local`;
-        return prisma.user.upsert({
+        const user = await prisma.user.upsert({
           where: { email },
           update: { clerkId: clerkUser.id, name: clerkUser.fullName || clerkUser.username || email },
           create: { clerkId: clerkUser.id, email, name: clerkUser.fullName || clerkUser.username || email }
         });
+        await ensureTenantForUser(user);
+        return prisma.user.findUniqueOrThrow({ where: { id: user.id } });
       }
     } catch {
       // Fall through to dev user. This keeps builds/previews resilient.
@@ -25,5 +28,7 @@ export async function getCurrentUser() {
 
   const email = process.env.DEV_USER_EMAIL || "founder@aurelia.ai";
   const name = process.env.DEV_USER_NAME || "Aurelia Founder";
-  return prisma.user.upsert({ where: { email }, update: { name }, create: { email, name } });
+  const user = await prisma.user.upsert({ where: { email }, update: { name }, create: { email, name } });
+  await ensureTenantForUser(user);
+  return prisma.user.findUniqueOrThrow({ where: { id: user.id } });
 }
