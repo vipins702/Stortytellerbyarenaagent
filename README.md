@@ -128,3 +128,78 @@ POST /api/ai/generate
 - `/api/ai/generate` returns metadata-driven sections and is ready for OpenAI integration. Add `OPENAI_API_KEY` and replace the rules-engine branch with a model call.
 - Uploads, Stripe checkout, custom domains and email notification routes are scaffold-ready but not yet fully wired.
 - `index.html` remains only as the old preview artifact; the actual SaaS is the Next.js app.
+
+## Vercel Deployment
+
+This project is now optimized for Vercel hosting.
+
+### Required Vercel environment variables
+
+Add these in **Vercel → Project → Settings → Environment Variables**:
+
+```env
+DATABASE_URL="your-supabase-or-postgres-connection-string"
+GEMINI_API_KEY="your-gemini-api-key"
+BLOB_READ_WRITE_TOKEN="auto-created-by-vercel-blob-or-manually-copied"
+DEV_USER_EMAIL="founder@yourdomain.com"
+DEV_USER_NAME="Founder"
+```
+
+Optional model overrides:
+
+```env
+GEMINI_TEXT_MODEL="gemini-2.5-flash"
+GEMINI_CODE_MODEL="gemini-2.5-pro"
+GEMINI_IMAGE_MODEL="gemini-2.5-flash-image-preview"
+```
+
+### Vercel Blob
+
+Create/connect Blob storage in Vercel:
+
+```txt
+Vercel Dashboard → Storage → Blob → Connect Project
+```
+
+The app uses Blob for:
+
+- image uploads
+- GLB/GLTF model uploads
+- Gemini-generated image assets
+- exported HTML files
+
+### Gemini-powered routes
+
+```txt
+POST /api/ai/generate
+```
+
+Generates metadata-driven website JSON using Gemini.
+
+```txt
+POST /api/ai/image
+```
+
+Generates an image with Gemini and saves it to Vercel Blob, optionally indexing it as a DB Asset.
+
+```txt
+POST /api/websites/:websiteId/export
+```
+
+Uses Gemini code generation to export a premium static HTML file, then stores it in Vercel Blob.
+
+### Public published sites
+
+After publishing a website, view it at:
+
+```txt
+/s/:slug
+```
+
+Example:
+
+```txt
+/s/maison-aurelia
+```
+
+The public renderer reads the published DB website, page sections, products and Blob assets.

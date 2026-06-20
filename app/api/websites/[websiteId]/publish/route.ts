@@ -17,5 +17,5 @@ export async function POST(_: Request, { params }: { params: { websiteId: string
     await tx.publishVersion.create({ data: { websiteId: website.id, version, snapshot: website } });
     return tx.website.update({ where: { id: website.id }, data: { status: "Published", metadata: { ...(website.metadata as object), lastPublishedVersion: version } } });
   });
-  return NextResponse.json({ data: published, url: `https://${website.slug}.aurelia.site`, version });
+  return NextResponse.json({ data: published, url: `/s/${website.slug}`, version });
 }

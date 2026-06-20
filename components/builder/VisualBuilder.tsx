@@ -31,7 +31,7 @@ export function VisualBuilder({ website, page, products, definitions }: Props) {
   const [sections, setSections] = useState<BuilderSection[]>(page.sections || []);
   const [siteName, setSiteName] = useState(website.name);
   const [aiOpen, setAiOpen] = useState(false);
-  const [prompt, setPrompt] = useState("");
+  const [aiPrompt, setAiPrompt] = useState("");
   const [isPending, startTransition] = useTransition();
   const [status, setStatus] = useState("Saved from database");
 
@@ -59,6 +59,31 @@ export function VisualBuilder({ website, page, products, definitions }: Props) {
     if (!res.ok) { setStatus("Save failed"); return; }
     setStatus("Saved to database");
   }
+  async function exportCode() {
+    setStatus("Generating export with Gemini…");
+    const res = await fetch(`/api/websites/${website.id}/export`, { method: "POST" });
+    const json = await res.json();
+    if (!res.ok) { setStatus(json.error || "Export failed"); return; }
+    setStatus(`Export ready: ${json.data.url}`);
+    window.open(json.data.url, "_blank");
+  }
+  async function uploadAsset(file: File, purpose = "asset") {
+    setStatus(`Uploading ${file.name} to Vercel Blob…`);
+    const form = new FormData();
+    form.set("file", file);
+    form.set("purpose", purpose);
+    const res = await fetch(`/api/websites/${website.id}/assets`, { method: "POST", body: form });
+    const json = await res.json();
+    setStatus(res.ok ? `Uploaded to Blob: ${json.data.filename}` : json.error || "Upload failed");
+  }
+  async function generateHeroImage() {
+    const imagePrompt = window.prompt("Describe the premium image asset", `Luxury editorial hero image for ${siteName}`);
+    if (!imagePrompt) return;
+    setStatus("Generating image with Gemini and saving to Vercel Blob…");
+    const res = await fetch("/api/ai/image", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: imagePrompt, websiteId: website.id }) });
+    const json = await res.json();
+    setStatus(res.ok ? `AI image saved: ${json.data.url}` : json.error || "Image generation failed");
+  }
   async function publish() {
     setStatus("Publishing…");
     const res = await fetch(`/api/websites/${website.id}/publish`, { method: "POST" });
@@ -67,7 +92,7 @@ export function VisualBuilder({ website, page, products, definitions }: Props) {
   }
   async function generate() {
     setStatus("Generating via API…");
-    const res = await fetch("/api/ai/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt, industry: "Luxury retail" }) });
+    const res = await fetch("/api/ai/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: aiPrompt, industry: "Luxury retail" }) });
     const json = await res.json();
     if (!res.ok) { setStatus(json.error || "AI failed"); return; }
     setSections(json.data.sections);
@@ -80,14 +105,14 @@ export function VisualBuilder({ website, page, products, definitions }: Props) {
     <div>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div><h1 className="font-serif text-5xl font-black tracking-[-.05em]">Visual Builder</h1><p className="mt-2 text-charcoal/60">DB-backed page: /{website.slug}. Status: {status}</p></div>
-        <div className="flex flex-wrap gap-2"><Button variant="light" onClick={() => alert("Export will render from DB page JSON and assets.")}>Export code</Button><Button variant="light" onClick={() => startTransition(save)} disabled={isPending}><Save className="h-4 w-4" /> Save</Button><Button variant="gold" onClick={() => setAiOpen(true)}><Sparkles className="h-4 w-4" /> AI generate</Button><Button variant="dark" onClick={() => startTransition(publish)}>Publish</Button></div>
+        <div className="flex flex-wrap gap-2"><Button variant="light" onClick={() => startTransition(exportCode)}>Export code</Button><Button variant="light" onClick={() => startTransition(save)} disabled={isPending}><Save className="h-4 w-4" /> Save</Button><Button variant="gold" onClick={() => setAiOpen(true)}><Sparkles className="h-4 w-4" /> AI generate</Button><Button variant="dark" onClick={() => startTransition(publish)}>Publish</Button></div>
       </div>
       <div className="grid gap-4 xl:grid-cols-[280px_1fr_290px]">
         <Card className="p-4"><h2 className="mb-4 font-black">Component metadata</h2><div className="grid gap-3">{definitions.map((item) => <button key={item.type} draggable onDragStart={(e) => e.dataTransfer.setData("section", item.type)} onClick={() => add(item.type)} className="rounded-3xl border border-black/10 bg-white/70 p-4 text-left transition hover:border-gold/50"><b>{item.label}</b><p className="mt-1 text-sm text-charcoal/55">{item.description}</p><p className="mt-2 text-[11px] font-black uppercase tracking-widest text-gold">{item.category || "Section"}</p></button>)}</div></Card>
         <Card className="min-h-[720px] overflow-hidden p-3"><div onDragOver={(e) => e.preventDefault()} onDrop={(e) => add(e.dataTransfer.getData("section") || "hero")} className="min-h-[690px] rounded-[24px] border border-black/10 bg-white p-3">{sections.length === 0 && <div className="rounded-3xl border border-dashed border-gold/60 bg-gold/5 p-8 text-center font-bold text-[#765813]">No sections yet. Add from metadata library.</div>}{sections.map((section, index) => <CanvasSection key={section.id} section={section} index={index} update={update} remove={remove} move={move} products={products} />)}<div className="mt-3 rounded-3xl border border-dashed border-gold/60 bg-gold/5 p-5 text-center text-sm font-bold text-[#765813]">Drop API component here</div></div></Card>
-        <Card className="p-4"><h2 className="mb-4 font-black">Website metadata</h2><label className="text-xs font-black uppercase tracking-widest text-charcoal/45">Website name</label><input value={siteName} onChange={(e) => setSiteName(e.target.value)} className="mt-2 w-full rounded-2xl border border-black/10 bg-white/75 px-4 py-3" /><div className="mt-5"><p className="text-xs font-black uppercase tracking-widest text-charcoal/45">Theme from DB</p><pre className="mt-3 max-h-44 overflow-auto rounded-2xl bg-charcoal p-4 text-xs text-cream">{JSON.stringify(website.theme, null, 2)}</pre></div><div className="mt-5 rounded-3xl border border-black/10 bg-white/65 p-4"><b>3D model uploader</b><p className="mt-2 text-sm text-charcoal/55">Asset rows persist to DB via future Uploadthing route.</p><input className="mt-3 text-sm" type="file" accept=".glb,.gltf" /></div></Card>
+        <Card className="p-4"><h2 className="mb-4 font-black">Website metadata</h2><label className="text-xs font-black uppercase tracking-widest text-charcoal/45">Website name</label><input value={siteName} onChange={(e) => setSiteName(e.target.value)} className="mt-2 w-full rounded-2xl border border-black/10 bg-white/75 px-4 py-3" /><div className="mt-5"><p className="text-xs font-black uppercase tracking-widest text-charcoal/45">Theme from DB</p><pre className="mt-3 max-h-44 overflow-auto rounded-2xl bg-charcoal p-4 text-xs text-cream">{JSON.stringify(website.theme, null, 2)}</pre></div><div className="mt-5 rounded-3xl border border-black/10 bg-white/65 p-4"><b>Vercel Blob assets</b><p className="mt-2 text-sm text-charcoal/55">Upload images or GLB/GLTF models. Files are stored in Vercel Blob and indexed in DB.</p><input className="mt-3 text-sm" type="file" accept="image/*,.glb,.gltf" onChange={(e) => e.target.files?.[0] && startTransition(() => uploadAsset(e.target.files![0], "builder"))} /><Button className="mt-3 w-full" variant="light" onClick={() => startTransition(generateHeroImage)}>Generate image with Gemini</Button></div></Card>
       </div>
-      {aiOpen && <div className="fixed inset-0 z-50 grid place-items-center bg-black/45 p-4 backdrop-blur-xl"><Card className="w-full max-w-2xl p-6"><div className="flex justify-between gap-4"><h2 className="font-serif text-4xl font-black tracking-[-.04em]">AI Website Generator</h2><Button variant="ghost" onClick={() => setAiOpen(false)}>Close</Button></div><textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={5} placeholder="Luxury skincare storefront with product cards, gallery and lead capture…" className="mt-5 w-full rounded-3xl border border-black/10 bg-white/75 p-4" /><p className="mt-3 text-sm text-charcoal/55">API-based generation returns metadata-driven sections.</p><Button className="mt-5" variant="gold" disabled={isPending} onClick={() => startTransition(generate)}>{isPending ? "Working…" : "Generate website"}</Button></Card></div>}
+      {aiOpen && <div className="fixed inset-0 z-50 grid place-items-center bg-black/45 p-4 backdrop-blur-xl"><Card className="w-full max-w-2xl p-6"><div className="flex justify-between gap-4"><h2 className="font-serif text-4xl font-black tracking-[-.04em]">AI Website Generator</h2><Button variant="ghost" onClick={() => setAiOpen(false)}>Close</Button></div><textarea value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} rows={5} placeholder="Luxury skincare storefront with product cards, gallery and lead capture…" className="mt-5 w-full rounded-3xl border border-black/10 bg-white/75 p-4" /><p className="mt-3 text-sm text-charcoal/55">API-based generation returns metadata-driven sections.</p><Button className="mt-5" variant="gold" disabled={isPending} onClick={() => startTransition(generate)}>{isPending ? "Working…" : "Generate website"}</Button></Card></div>}
     </div>
   );
 }
