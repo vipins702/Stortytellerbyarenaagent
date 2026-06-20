@@ -1,14 +1,21 @@
 import type { MetadataRoute } from "next";
-import { prisma } from "@/lib/prisma";
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+/**
+ * Build-safe platform sitemap.
+ *
+ * Do not query Prisma here: Next collects this route during Vercel build, and the
+ * production database may not be reachable or migrated yet at build time.
+ * Published websites still expose their own DB-backed sitemap at:
+ * /s/:slug/sitemap.xml
+ */
+export default function sitemap(): MetadataRoute.Sitemap {
   const base = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  if (!process.env.DATABASE_URL) return [{ url: base, lastModified: new Date(), priority: 1 }];
-  const websites = await prisma.website.findMany({ where: { status: "Published" }, select: { slug: true, updatedAt: true } }).catch(() => []);
+  const now = new Date();
   return [
-    { url: base, lastModified: new Date(), priority: 1 },
-    { url: `${base}/templates`, lastModified: new Date(), priority: 0.8 },
-    { url: `${base}/billing`, lastModified: new Date(), priority: 0.7 },
-    ...websites.map((site) => ({ url: `${base}/s/${site.slug}`, lastModified: site.updatedAt, priority: 0.9 }))
+    { url: base, lastModified: now, priority: 1 },
+    { url: `${base}/templates`, lastModified: now, priority: 0.8 },
+    { url: `${base}/billing`, lastModified: now, priority: 0.7 },
+    { url: `${base}/guide`, lastModified: now, priority: 0.7 },
+    { url: `${base}/signup`, lastModified: now, priority: 0.6 }
   ];
 }
