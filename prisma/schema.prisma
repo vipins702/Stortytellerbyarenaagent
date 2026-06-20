@@ -1,72 +1,249 @@
-generator client { provider = "prisma-client-js" }
-datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+generator client {
+  provider = "prisma-client-js"
+}
 
-enum WebsiteStatus { Draft Published }
-enum ProductStatus { Active Draft }
-enum OrderStatus { Paid Packing Shipped Delivered Cancelled }
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum WebsiteStatus {
+  Draft
+  Published
+  Archived
+}
+
+enum ProductStatus {
+  Active
+  Draft
+  Archived
+}
+
+enum OrderStatus {
+  Paid
+  Packing
+  Shipped
+  Delivered
+  Cancelled
+  Refunded
+}
+
+enum LeadStatus {
+  New
+  Contacted
+  Converted
+  Archived
+}
+
+enum SubscriptionPlan {
+  Free
+  Pro
+  Business
+}
+
+enum Role {
+  Owner
+  Admin
+  Designer
+  Editor
+  Viewer
+  Billing
+}
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  websites  Website[]
+  id             String        @id @default(cuid())
+  clerkId        String?       @unique
+  email          String        @unique
+  name           String?
+  memberships    Membership[]
+  websites       Website[]     @relation("WebsiteOwner")
+  subscriptions  Subscription[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model Organization {
+  id          String       @id @default(cuid())
+  name        String
+  slug        String       @unique
+  memberships Membership[]
+  websites    Website[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Membership {
+  id             String       @id @default(cuid())
+  userId         String
+  organizationId String
+  role           Role         @default(Editor)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+
+  @@unique([userId, organizationId])
 }
 
 model Website {
-  id        String        @id @default(cuid())
-  ownerId   String
-  owner     User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  name      String
-  slug      String        @unique
-  status    WebsiteStatus @default(Draft)
-  pages     Page[]
-  products  Product[]
-  leads     Lead[]
-  orders    Order[]
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  id             String          @id @default(cuid())
+  ownerId        String
+  organizationId String?
+  owner          User            @relation("WebsiteOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  organization   Organization?   @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  name           String
+  slug           String          @unique
+  status         WebsiteStatus   @default(Draft)
+  industry       String?
+  theme          Json            @default("{}")
+  metadata       Json            @default("{}")
+  pages          Page[]
+  assets         Asset[]
+  products       Product[]
+  leads          Lead[]
+  orders         Order[]
+  versions       PublishVersion[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([ownerId])
+  @@index([organizationId])
 }
 
 model Page {
-  id        String   @id @default(cuid())
-  websiteId String
-  website   Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
-  title     String
-  path      String
-  sections  Json
-  seo       Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  websiteId   String
+  website     Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  title       String
+  path        String
+  sections    Json     @default("[]")
+  seo         Json     @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([websiteId, path])
+  @@index([websiteId])
+}
+
+model Template {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  industry    String
+  description String
+  isPremium   Boolean  @default(false)
+  metadata    Json     @default("{}")
+  theme       Json     @default("{}")
+  sections    Json     @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ComponentDefinition {
+  id          String   @id @default(cuid())
+  type        String   @unique
+  label       String
+  description String
+  category    String
+  schema      Json
+  defaults    Json
+  metadata    Json     @default("{}")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Asset {
+  id          String   @id @default(cuid())
+  websiteId   String
+  website     Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  url         String
+  key         String
+  type        String
+  filename    String
+  metadata    Json     @default("{}")
+  createdAt   DateTime @default(now())
+
+  @@index([websiteId])
 }
 
 model Product {
-  id        String        @id @default(cuid())
-  websiteId String
-  website   Website       @relation(fields: [websiteId], references: [id], onDelete: Cascade)
-  name      String
-  price     Int
-  stock     Int           @default(0)
-  status    ProductStatus @default(Draft)
-  createdAt DateTime      @default(now())
+  id          String        @id @default(cuid())
+  websiteId   String
+  website     Website       @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  name        String
+  slug        String
+  description String?
+  price       Int
+  currency    String        @default("usd")
+  stock       Int           @default(0)
+  sku         String?
+  status      ProductStatus @default(Draft)
+  metadata    Json          @default("{}")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@unique([websiteId, slug])
+  @@index([websiteId])
 }
 
 model Lead {
-  id        String   @id @default(cuid())
-  websiteId String
-  website   Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
-  name      String
-  email     String
-  source    String?
-  createdAt DateTime @default(now())
+  id          String     @id @default(cuid())
+  websiteId   String
+  website     Website    @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  name        String
+  email       String
+  phone       String?
+  source      String?
+  message     String?
+  status      LeadStatus @default(New)
+  metadata    Json       @default("{}")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([websiteId])
 }
 
 model Order {
-  id        String      @id @default(cuid())
-  websiteId String
-  website   Website     @relation(fields: [websiteId], references: [id], onDelete: Cascade)
-  customer  String
-  total     Int
-  status    OrderStatus @default(Paid)
-  createdAt DateTime    @default(now())
+  id             String      @id @default(cuid())
+  websiteId      String
+  website        Website     @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  customerName   String
+  customerEmail  String?
+  total          Int
+  currency       String      @default("usd")
+  status         OrderStatus @default(Paid)
+  items          Json        @default("[]")
+  stripePaymentId String?
+  metadata       Json        @default("{}")
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([websiteId])
+}
+
+model PublishVersion {
+  id          String   @id @default(cuid())
+  websiteId   String
+  website     Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  version     Int
+  snapshot    Json
+  publishedAt DateTime @default(now())
+
+  @@unique([websiteId, version])
+  @@index([websiteId])
+}
+
+model Subscription {
+  id                 String           @id @default(cuid())
+  userId             String
+  user               User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan               SubscriptionPlan @default(Free)
+  stripeCustomerId   String?
+  stripeSubscriptionId String?
+  status             String           @default("active")
+  currentPeriodEnd   DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@index([userId])
 }

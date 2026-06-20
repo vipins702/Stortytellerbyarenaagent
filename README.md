@@ -1,39 +1,29 @@
-# Aurelia AI — Premium AI Website Builder SaaS MVP
+# Aurelia AI — Premium DB-Driven AI Website Builder SaaS MVP
 
-This is now a real Next.js SaaS MVP structure, not only a single `index.html` prototype.
+This project has been upgraded from a static prototype into a **Next.js 14, API-first, DB-driven SaaS foundation**.
 
-## Built
+The app is no longer powered by mock arrays for core SaaS data. Websites, pages, sections, component definitions, templates, products, leads, orders, subscriptions and publish versions are modeled in Prisma and accessed through API/server data layers.
+
+## Stack
 
 - Next.js 14 App Router
 - TypeScript
-- Tailwind CSS design system
-- SaaS landing page
-- Login / signup screens, ready for Clerk
-- Dashboard: My Websites
-- Visual Builder route with:
-  - component library
-  - add sections
-  - drag/drop into canvas
-  - inline editing
-  - reorder/delete sections
-  - AI generator modal
-  - export/publish placeholders
-  - 3D model upload placeholder
-- CMS routes:
-  - products
-  - orders
-  - leads
-- Template gallery
-- Settings page
-- Billing/pricing page
-- AI generation API route with validation and mocked response
-- Prisma PostgreSQL schema for production backend
-- `.env.example` for Clerk, Stripe, OpenAI, Uploadthing and database
+- Tailwind CSS premium design system
+- Prisma ORM
+- PostgreSQL/Supabase-ready schema
+- Metadata-driven component registry
+- API routes for websites, pages, products, leads, orders, templates, components and publish
+- AI generation API contract, ready for OpenAI wiring
 
-## Run locally
+## Run Locally
 
 ```bash
 npm install
+cp .env.example .env
+# Set DATABASE_URL to Supabase/Postgres
+npm run db:generate
+npm run db:push
+npm run db:seed
 npm run dev
 ```
 
@@ -43,16 +33,98 @@ Open:
 http://localhost:3000
 ```
 
-## Production integrations to wire next
+## DB-Driven Architecture
 
-- Clerk auth and organizations
-- Supabase PostgreSQL via Prisma
-- Stripe Billing
-- OpenAI GPT-4/DALL-E website generation
-- Uploadthing/Cloudinary asset uploads
-- React Three Fiber 3D model viewer
-- Real publish pipeline and custom domains
+### Prisma models
 
-## Important
+- User
+- Organization
+- Membership
+- Website
+- Page
+- Template
+- ComponentDefinition
+- Asset
+- Product
+- Lead
+- Order
+- PublishVersion
+- Subscription
 
-`index.html` remains in the repo as an old static prototype, but the actual SaaS MVP is now the Next.js app under `app/`, `components/`, `lib/`, and `prisma/`.
+### Metadata-driven builder
+
+Component definitions are records in the database via `ComponentDefinition`:
+
+```txt
+type
+label
+description
+category
+schema
+defaults
+metadata
+```
+
+Pages store a JSON section tree:
+
+```json
+[
+  {
+    "id": "section-id",
+    "type": "hero",
+    "props": {},
+    "animation": {},
+    "metadata": {}
+  }
+]
+```
+
+The builder reads component metadata from `/api/components`, reads the page JSON from Prisma, edits locally, and persists through:
+
+```txt
+PATCH /api/pages/:pageId
+```
+
+## API Routes
+
+```txt
+GET  /api/components
+GET  /api/templates
+GET  /api/websites
+POST /api/websites
+GET  /api/websites/:websiteId
+PATCH /api/websites/:websiteId
+DELETE /api/websites/:websiteId
+PATCH /api/pages/:pageId
+GET  /api/websites/:websiteId/products
+POST /api/websites/:websiteId/products
+GET  /api/websites/:websiteId/leads
+POST /api/websites/:websiteId/leads
+GET  /api/websites/:websiteId/orders
+POST /api/websites/:websiteId/orders
+POST /api/websites/:websiteId/publish
+POST /api/ai/generate
+```
+
+## Pages
+
+```txt
+/                  Marketing landing
+/login             Clerk-ready login screen
+/signup            Clerk-ready signup screen
+/dashboard         DB-driven website dashboard
+/builder           DB-driven metadata builder
+/cms/products      DB products
+/cms/orders        DB orders
+/cms/leads         DB leads
+/templates         DB templates
+/settings          Settings shell
+/billing           Pricing/billing shell
+```
+
+## Important Production Notes
+
+- `lib/auth.ts` currently creates/loads a real DB development user from `DEV_USER_EMAIL`. Replace it with Clerk `auth()` and `currentUser()` when Clerk keys are available.
+- `/api/ai/generate` returns metadata-driven sections and is ready for OpenAI integration. Add `OPENAI_API_KEY` and replace the rules-engine branch with a model call.
+- Uploads, Stripe checkout, custom domains and email notification routes are scaffold-ready but not yet fully wired.
+- `index.html` remains only as the old preview artifact; the actual SaaS is the Next.js app.
