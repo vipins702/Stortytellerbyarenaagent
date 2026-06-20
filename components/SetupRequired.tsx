@@ -1,0 +1,6 @@
+import { Card } from "@/components/ui/Card";
+import { ButtonLink } from "@/components/ui/Button";
+
+export function SetupRequired({ title = "Studio setup needs attention", message }: { title?: string; message?: string }) {
+  return <div className="mx-auto grid min-h-[70vh] max-w-3xl place-items-center px-4 py-10"><Card className="p-8 text-center"><p className="text-xs font-black uppercase tracking-[.22em] text-[#8a6818]">Workspace notice</p><h1 className="mt-3 font-serif text-5xl font-black tracking-[-.05em]">{title}</h1><p className="mx-auto mt-4 max-w-xl leading-7 text-charcoal/60">{message || "The workspace could not load its database records. Check the production database connection and run the Prisma schema update."}</p><div className="mt-6 rounded-3xl bg-white/70 p-4 text-left text-sm text-charcoal/65"><b>Production checklist</b><pre className="mt-3 overflow-auto rounded-2xl bg-charcoal p-4 text-xs text-cream">DATABASE_URL="..."{"\n"}npm run db:generate{"\n"}npm run db:push{"\n"}npm run db:seed</pre></div><div className="mt-6 flex flex-wrap justify-center gap-3"><ButtonLink href="/" variant="light">Back home</ButtonLink><ButtonLink href="/guide" variant="gold">Open guide</ButtonLink></div></Card></div>;
+}
