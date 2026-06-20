@@ -630,3 +630,92 @@ The permission helper is now applied to several important write actions:
 - domain creation
 
 Remaining write APIs should continue adopting the same `assertWebsitePermission` helper.
+
+## Main remaining task pass
+
+This pass completed the main remaining production pieces.
+
+### Full sensitive write permission coverage
+
+The permission helper is now applied to more high-risk APIs:
+
+- website update/delete
+- page section save
+- page search settings
+- product create/update/delete
+- product asset upload
+- website publish
+- website export
+- version restore
+- domain creation
+- A/B test creation
+
+### Admin panel
+
+Added:
+
+```txt
+/admin
+lib/admin.ts
+components/admin/AdminDashboard.tsx
+```
+
+Admin access is controlled by:
+
+```env
+ADMIN_EMAILS="founder@yourdomain.com,ops@yourdomain.com"
+```
+
+The admin panel shows:
+
+- users
+- websites
+- subscriptions
+- orders
+- leads
+- webhook event count
+- recent audit logs
+- recent webhook events
+
+### Storefront cart
+
+Added:
+
+```txt
+components/commerce/StorefrontCart.tsx
+```
+
+Published product cards now add items to a storefront cart instead of only starting a single-product checkout.
+
+The existing checkout endpoint already accepts multiple items:
+
+```txt
+POST /api/storefront/:slug/checkout
+```
+
+### Inventory decrement
+
+Stripe webhook handling now decrements product stock after successful storefront checkout.
+
+### Product image and variant metadata
+
+The product manager now supports:
+
+- product image URL
+- simple line-based variants
+
+These are stored in `Product.metadata` to keep the system metadata-driven without adding unnecessary tables yet.
+
+Published product cards use `metadata.imageUrl` when present.
+
+### Basic A/B rendering and tracking
+
+Published sites now load the first active A/B test, render the highest-weight variant sections and track an `ab_view` analytics event.
+
+Added:
+
+```txt
+components/published/ABTracker.tsx
+```
+
+This keeps experiments metadata-driven through `ABTest` and `ABVariant`.

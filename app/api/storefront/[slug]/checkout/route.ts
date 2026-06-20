@@ -16,7 +16,8 @@ export async function POST(request: Request, { params }: { params: { slug: strin
     const line_items = input.items.map((item) => {
       const product = products.find((p) => p.id === item.productId);
       if (!product) throw new Error("Invalid product");
-      return { quantity: item.quantity, price_data: { currency: product.currency, unit_amount: product.price, product_data: { name: product.name, description: product.description || undefined } } };
+      if (product.stock < item.quantity) throw new Error(`${product.name} does not have enough stock.`);
+      return { quantity: item.quantity, price_data: { currency: product.currency, unit_amount: product.price, product_data: { name: product.name, description: product.description || undefined, images: (product.metadata as any)?.imageUrl ? [(product.metadata as any).imageUrl] : undefined } } };
     });
     const origin = request.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const stripe = getStripe();

@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import { PublishedRenderer } from "@/components/published/PublishedRenderer";
 import { prisma } from "@/lib/prisma";
+import { ABTracker } from "@/components/published/ABTracker";
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const website = await prisma.website.findUnique({ where: { slug: params.slug }, include: { pages: { take: 1 } } });
@@ -13,7 +14,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 export default async function PublishedSitePage({ params }: { params: { slug: string } }) {
   const website = await prisma.website.findUnique({
     where: { slug: params.slug },
-    include: { pages: { orderBy: { createdAt: "asc" }, take: 1 }, products: { where: { status: "Active" } }, assets: true }
+    include: { pages: { orderBy: { createdAt: "asc" }, take: 1 }, products: { where: { status: "Active" } }, assets: true, abTests: { where: { status: "Active" }, include: { variants: true }, take: 1 } }
   });
   if (!website || website.status !== "Published" || !website.pages[0]) notFound();
   const seo = website.pages[0].seo as any;
@@ -27,5 +28,8 @@ export default async function PublishedSitePage({ params }: { params: { slug: st
     potentialAction: { "@type": "SearchAction", target: `${base}/s/${website.slug}?q={search_term_string}`, "query-input": "required name=search_term_string" },
     hasOfferCatalog: website.products.length ? { "@type": "OfferCatalog", name: `${website.name} Products`, itemListElement: website.products.map((product) => ({ "@type": "Offer", itemOffered: { "@type": "Product", name: product.name, description: product.description || product.name }, price: product.price / 100, priceCurrency: product.currency.toUpperCase() })) } : undefined
   };
-  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} /><PublishedRenderer website={website} page={{ sections: website.pages[0].sections as any[] }} products={website.products} assets={website.assets} /></>;
+  const activeTest = website.abTests[0];
+  const variant = activeTest?.variants.sort((a, b) => b.weight - a.weight)[0];
+  const sections = variant?.sections && Array.isArray(variant.sections) && variant.sections.length ? variant.sections as any[] : website.pages[0].sections as any[];
+  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />{activeTest && variant && <ABTracker websiteId={website.id} testId={activeTest.id} variantId={variant.id} />}<PublishedRenderer website={website} page={{ sections }} products={website.products} assets={website.assets} /></>;
 }

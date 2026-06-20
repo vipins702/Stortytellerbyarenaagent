@@ -36,6 +36,11 @@ export async function POST(request: Request) {
           include: { website: { include: { owner: true } } }
         });
         await sendEmail({ to: order.website.owner.email, subject: `New order from ${order.website.name}`, html: orderEmailHtml({ websiteName: order.website.name, customerName: order.customerName, total: `${order.currency.toUpperCase()} ${(order.total / 100).toFixed(2)}` }) }).catch(() => null);
+        for (const item of items) {
+          if (item.productId && item.quantity) {
+            await prisma.product.updateMany({ where: { id: item.productId, websiteId, stock: { gte: Number(item.quantity) } }, data: { stock: { decrement: Number(item.quantity) } } });
+          }
+        }
         await prisma.analyticsEvent.create({ data: { websiteId, type: "checkout_completed", path: `/s/${session.metadata.slug || ""}`, metadata: { amount: session.amount_total, sessionId: session.id } } });
       } else {
         const userId = session.metadata?.userId;

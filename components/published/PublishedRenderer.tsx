@@ -1,7 +1,7 @@
 import { LeadCaptureForm } from "@/components/published/LeadCaptureForm";
-import { BuyButton } from "@/components/commerce/BuyButton";
+import { AddToCartButton, StorefrontCart } from "@/components/commerce/StorefrontCart";
 type Section = { id: string; type: string; props: Record<string, any>; animation?: Record<string, any>; metadata?: Record<string, any> };
-type Product = { id: string; name: string; price: number; stock: number };
+type Product = { id: string; name: string; price: number; stock: number; metadata?: any };
 type Asset = { id: string; url: string; type: string; filename: string };
 
 export function PublishedRenderer({ website, page, products, assets }: { website: any; page: { sections: Section[] }; products: Product[]; assets: Asset[] }) {
@@ -15,7 +15,7 @@ export function PublishedRenderer({ website, page, products, assets }: { website
       </header>
       {(page.sections || []).map((section) => <PublishedSection key={section.id} slug={website.slug} websiteId={website.id} section={section} products={products} assets={assets} />)}
       <footer className="border-t border-black/10 px-5 py-10 text-center text-sm text-black/50">Published with Aurelia AI</footer>
-    </main>
+    <StorefrontCart slug={website.slug} products={products as any} /></main>
   );
 }
 
@@ -27,7 +27,7 @@ function PublishedSection({ slug, websiteId, section, products, assets }: { slug
   }
   if (section.type === "features") return <section className="px-5 py-20"><div className="mx-auto max-w-7xl"><h2 className="font-serif text-5xl font-black tracking-[-.05em]">{p.title}</h2><div className="mt-8 grid gap-4 md:grid-cols-3">{(p.items || []).map((item: any, i: number) => <div key={i} className="rounded-[2rem] border border-black/10 bg-white/60 p-7 shadow-xl backdrop-blur-xl"><b>{item.title}</b><p className="mt-3 leading-7 text-black/55">{item.body}</p></div>)}</div></div></section>;
   if (section.type === "gallery") return <section className="px-5 py-20"><div className="mx-auto max-w-7xl"><h2 className="font-serif text-5xl font-black tracking-[-.05em]">{p.title}</h2><div className="mt-8 grid gap-4 md:grid-cols-[1.4fr_1fr_1fr]">{[0,1,2].map((i) => <div key={i} className="h-72 rounded-[2rem] bg-gradient-to-br from-white via-[#eadfc9] to-[#D4AF37] shadow-xl" />)}</div></div></section>;
-  if (section.type === "products") return <section id="products" className="px-5 py-20"><div className="mx-auto max-w-7xl"><h2 className="font-serif text-5xl font-black tracking-[-.05em]">{p.title}</h2><div className="mt-8 grid gap-4 md:grid-cols-3">{products.slice(0, p.limit || 3).map((product) => <article key={product.id} className="rounded-[2rem] border border-black/10 bg-white/70 p-5 shadow-xl"><div className="mb-5 h-44 rounded-[1.5rem] bg-gradient-to-br from-[#1a1a1a] to-[#D4AF37]"/><b>{product.name}</b><p className="mt-2 text-black/55">${(product.price / 100).toFixed(2)}</p><BuyButton slug={slug} productId={product.id} /></article>)}</div></div></section>;
+  if (section.type === "products") return <section id="products" className="px-5 py-20"><div className="mx-auto max-w-7xl"><h2 className="font-serif text-5xl font-black tracking-[-.05em]">{p.title}</h2><div className="mt-8 grid gap-4 md:grid-cols-3">{products.slice(0, p.limit || 3).map((product) => <article key={product.id} className="rounded-[2rem] border border-black/10 bg-white/70 p-5 shadow-xl">{(product as any).metadata?.imageUrl ? <img src={(product as any).metadata.imageUrl} alt={product.name} className="mb-5 h-44 w-full rounded-[1.5rem] object-cover"/> : <div className="mb-5 h-44 rounded-[1.5rem] bg-gradient-to-br from-[#1a1a1a] to-[#D4AF37]"/>}<b>{product.name}</b><p className="mt-2 text-black/55">${(product.price / 100).toFixed(2)}</p><AddToCartButton productId={product.id} /></article>)}</div></div></section>;
   if (section.type === "model3d") return <section className="px-5 py-24"><div className="mx-auto grid max-w-7xl gap-10 rounded-[2.5rem] border border-black/10 bg-white/60 p-8 shadow-2xl backdrop-blur-xl md:grid-cols-2 md:items-center"><div><span className="rounded-full border border-[#D4AF37]/30 bg-white/60 px-3 py-1 text-xs font-black uppercase tracking-widest text-[#7a5b12]">3D detail</span><h2 className="mt-5 font-serif text-5xl font-black tracking-[-.05em]">{p.title || "Explore every detail"}</h2><p className="mt-5 leading-8 text-black/60">{p.body || "A closer look at the craftsmanship, materials and form."}</p></div><div className="relative grid h-[380px] place-items-center overflow-hidden rounded-[2rem] bg-[#1a1a1a] text-white"><div className="absolute h-56 w-56 rounded-full bg-[#D4AF37]/30 blur-3xl"/><span className="relative text-8xl">◈</span><p className="absolute bottom-6 text-sm text-white/60">Interactive model showcase</p>{p.assetUrl && <a href={p.assetUrl} className="absolute right-5 top-5 rounded-full bg-white/10 px-4 py-2 text-xs font-bold" target="_blank">Open model</a>}</div></div></section>;
   if (section.type === "lead") return <section id="contact" className="px-5 py-20"><div className="mx-auto max-w-5xl rounded-[2rem] bg-[#1a1a1a] p-10 text-white"><h2 className="font-serif text-5xl font-black tracking-[-.05em]">{p.title}</h2><LeadCaptureForm websiteId={websiteId} placeholder={p.placeholder || "email@brand.com"} /></div></section>;
   return null;
