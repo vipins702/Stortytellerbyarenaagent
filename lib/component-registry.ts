@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const sectionTypes = ["hero", "features", "gallery", "products", "lead", "model3d"] as const;
+export const sectionTypes = ["hero", "features", "gallery", "products", "lead", "model3d", "scrollStory"] as const;
 export const sectionTypeSchema = z.enum(sectionTypes);
 
 export const sectionSchema = z.object({
@@ -71,6 +71,34 @@ export const componentDefinitions = [
     metadata: { supports: ["productSource", "abTesting", "modelViewer"], premium: false }
   },
 
+
+  {
+    type: "scrollStory",
+    label: "Scroll Storytelling",
+    category: "Story",
+    description: "Premium scroll-driven story section with image or video panels.",
+    schema: {
+      eyebrow: { type: "string", label: "Eyebrow" },
+      title: { type: "string", label: "Title" },
+      body: { type: "string", label: "Body" },
+      mediaUrl: { type: "asset", label: "Image or video URL" },
+      mediaType: { type: "string", label: "Media type" },
+      chapters: { type: "array", label: "Story chapters" }
+    },
+    defaults: {
+      eyebrow: "Story",
+      title: "A journey told in motion",
+      body: "Guide visitors through a polished sequence of visuals, product moments and narrative details.",
+      mediaUrl: "",
+      mediaType: "video",
+      chapters: [
+        { title: "Opening moment", body: "Introduce the world, mood and promise." },
+        { title: "Craft and detail", body: "Show what makes the product or service valuable." },
+        { title: "Invitation", body: "End with a clear next step for the visitor." }
+      ]
+    },
+    metadata: { supports: ["video", "image", "stickyScroll", "storytelling"], premium: true }
+  },
   {
     type: "model3d",
     label: "3D Model Showcase",

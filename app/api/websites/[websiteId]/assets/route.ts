@@ -8,6 +8,7 @@ import { slugify } from "@/lib/utils";
 import { assertWebsitePermission } from "@/lib/permissions";
 import { audit } from "@/lib/audit";
 import { assertRateLimit, rateLimitKey } from "@/lib/rate-limit";
+import { validateUpload } from "@/lib/upload-policy";
 
 export async function GET(_: Request, { params }: { params: { websiteId: string } }) {
   const user = await getCurrentUser();
@@ -25,6 +26,7 @@ export async function POST(request: Request, { params }: { params: { websiteId: 
     const file = form.get("file");
     const purpose = String(form.get("purpose") || "asset");
     if (!(file instanceof File)) return NextResponse.json({ error: "Missing file" }, { status: 400 });
+    validateUpload(file);
 
     const safeName = slugify(file.name.replace(/\.[^.]+$/, "")) || "upload";
     const extension = file.name.split(".").pop() || "bin";

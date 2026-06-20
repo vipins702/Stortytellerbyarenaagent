@@ -719,3 +719,62 @@ components/published/ABTracker.tsx
 ```
 
 This keeps experiments metadata-driven through `ABTest` and `ABVariant`.
+
+## Media storytelling refinement
+
+### Image generation and upload
+
+The platform supports image generation through Gemini and image upload through Vercel Blob:
+
+```txt
+POST /api/ai/image
+POST /api/websites/:websiteId/assets
+```
+
+Images are stored as `Asset` records and can be used by product cards, published pages and visual sections.
+
+### Video upload for scroll storytelling
+
+Video upload is now supported for:
+
+```txt
+video/mp4
+video/webm
+```
+
+Videos are uploaded to Vercel Blob through the asset library and builder upload flow. Upload validation now checks type and size:
+
+- images up to 12 MB
+- videos up to 80 MB
+- GLB/GLTF models up to 50 MB
+
+### Scroll Storytelling section
+
+Added metadata-driven section type:
+
+```txt
+scrollStory
+```
+
+This section supports:
+
+- image or video media URL
+- sticky visual panel
+- narrative chapters
+- premium dark editorial layout
+- published renderer support
+- builder preview support
+
+It is designed for product launches, case studies, brand stories and cinematic landing pages.
+
+### Models used inside the app
+
+The app uses Gemini through configurable environment variables:
+
+```env
+GEMINI_TEXT_MODEL="gemini-2.5-flash"
+GEMINI_CODE_MODEL="gemini-2.5-pro"
+GEMINI_IMAGE_MODEL="gemini-2.5-flash-image-preview"
+```
+
+These are used for site generation, code export and image creation inside the product.
