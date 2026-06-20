@@ -778,3 +778,21 @@ GEMINI_IMAGE_MODEL="gemini-2.5-flash-image-preview"
 ```
 
 These are used for site generation, code export and image creation inside the product.
+
+## Builder scroll story editor refinement
+
+The builder now includes a dedicated editor for `scrollStory` sections.
+
+Inside the visual builder, scroll story sections now support:
+
+- selecting uploaded/generated images from site assets
+- selecting uploaded MP4/WebM videos from site assets
+- previewing selected image or video directly in the canvas
+- adding story chapters
+- editing chapter title and body
+- removing chapters
+- saving everything as section metadata in the page JSON
+
+The builder loads `Asset` records with the selected website and keeps newly uploaded/generated assets available immediately in the builder session.
+
+This makes scroll storytelling practical for tenants without requiring manual URL copy/paste.
