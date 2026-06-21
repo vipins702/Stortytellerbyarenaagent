@@ -146,6 +146,9 @@ export function VisualBuilder({ website, page, products, assets, definitions }: 
     setSiteName(json.data.name || siteName);
     setStatus("Scene converted into editable sections. Review and save.");
   }
+  function openPreview() {
+    window.open(`/preview/${website.id}`, "_blank", "noopener,noreferrer");
+  }
   async function publish() {
     setStatus("Publishing…");
     const res = await fetch(`/api/websites/${website.id}/publish`, { method: "POST" });
@@ -171,7 +174,7 @@ export function VisualBuilder({ website, page, products, assets, definitions }: 
     <div>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div><h1 className="font-serif text-5xl font-black tracking-[-.05em]">Visual Builder</h1><p className="mt-2 text-charcoal/60">DB-backed page: /{website.slug}. Status: {status}</p></div>
-        <div className="flex flex-wrap gap-2"><Button variant="light" onClick={() => startTransition(exportCode)}>Export code</Button><Button variant="light" onClick={() => startTransition(save)} disabled={isPending}><Save className="h-4 w-4" /> Save</Button><Button variant="light" onClick={() => setPanelsCompact(!panelsCompact)}>{panelsCompact ? "Panels" : "Compact"}</Button><Button variant="gold" onClick={() => setAiOpen(true)}><Sparkles className="h-4 w-4" /> AI generate</Button><Button variant="dark" onClick={() => startTransition(publish)}>Publish</Button></div>
+        <div className="flex flex-wrap gap-2"><Button variant="light" onClick={() => startTransition(exportCode)}>Export code</Button><Button variant="light" onClick={() => startTransition(save)} disabled={isPending}><Save className="h-4 w-4" /> Save</Button><Button variant="light" onClick={openPreview}>Preview tab</Button><Button variant="light" onClick={() => setPanelsCompact(!panelsCompact)}>{panelsCompact ? "Panels" : "Compact"}</Button><Button variant="gold" onClick={() => setAiOpen(true)}><Sparkles className="h-4 w-4" /> AI generate</Button><Button variant="dark" onClick={() => startTransition(publish)}>Publish</Button></div>
       </div>
       <div className={`grid gap-4 ${panelsCompact ? "xl:grid-cols-[88px_minmax(0,1fr)_88px]" : "xl:grid-cols-[280px_minmax(0,1fr)_290px]"}`}>
         <Card className="p-3"><h2 className={`${panelsCompact ? "sr-only" : "mb-4"} font-black`}>Component metadata</h2><div className="grid gap-2">{definitions.map((item) => <button title={item.label} key={item.type} draggable onDragStart={(e) => e.dataTransfer.setData("section", item.type)} onClick={() => add(item.type)} className="rounded-3xl border border-black/10 bg-white/70 p-4 text-left transition hover:border-gold/50"><b>{panelsCompact ? item.label.slice(0,1) : item.label}</b>{!panelsCompact && <><p className="mt-1 text-sm text-charcoal/55">{item.description}</p><p className="mt-2 text-[11px] font-black uppercase tracking-widest text-gold">{item.category || "Section"}</p></>}</button>)}</div></Card>
