@@ -49,7 +49,7 @@ export async function POST(request: Request) {
         industry: input.industry,
         theme,
         metadata: { createdFrom: template ? "template" : "blank", templateId: template?.id },
-        pages: { create: { tenantId, userId: user.id, title: "Home", path: "/", sections, seo: { title: input.name, description: `Premium website for ${input.name}` } } }
+        pages: { create: { tenantId, userId: user.id, title: "Home", path: "/", sections: sections as any, seo: { title: input.name, description: `Premium website for ${input.name}` } } }
       },
       include: { pages: true }
     });

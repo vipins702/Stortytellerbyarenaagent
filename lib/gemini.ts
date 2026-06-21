@@ -10,7 +10,7 @@ export function getGeminiClient() {
 
 export const generatedSectionSchema = z.object({
   id: z.string(),
-  type: z.enum(["hero", "features", "gallery", "products", "lead", "model3d", "scrollStory"]),
+  type: z.enum(["hero", "hero3D", "features", "bentoGrid", "gallery", "marquee", "testimonials", "comparison", "horizontalScroll", "stats", "process", "pricing", "faq", "portfolioGrid", "team", "ctaFullscreen", "footer", "products", "lead", "model3d", "scrollStory"]),
   props: z.record(z.any()),
   animation: z.record(z.any()).default({}),
   metadata: z.record(z.any()).default({})
@@ -21,6 +21,10 @@ export const generatedWebsiteSchema = z.object({
   industry: z.string().optional(),
   theme: z.record(z.any()),
   seo: z.record(z.any()),
+  page: z.record(z.any()).optional(),
+  globalFx: z.record(z.any()).optional(),
+  accessibility: z.record(z.any()).optional(),
+  performance: z.record(z.any()).optional(),
   sections: z.array(generatedSectionSchema)
 });
 
@@ -36,15 +40,16 @@ export async function generateWebsiteWithGemini(input: { prompt: string; industr
       {
         role: "user",
         parts: [{
-          text: `You are the AI engine for Aurelia AI, a premium website builder SaaS. Generate a luxury, editable website JSON only.
+          text: `You are the generation engine for ScrollStoryTeller, a premium cinematic website builder. Generate editable metadata JSON only.
 
 Brand style:
-- Apple meets Webflow meets Shopify
-- white/cream backgrounds, champagne/gold accents, charcoal text
+- dark cinematic editorial design
+- layered violet/cyan/glow color systems
 - metadata-driven sections
-- premium animations
+- premium animation contracts
+- $10K-template quality visual richness
 
-Allowed section types: hero, features, gallery, products, lead, model3d, scrollStory.
+Allowed section types: hero, hero3D, features, bentoGrid, gallery, marquee, testimonials, comparison, horizontalScroll, stats, process, pricing, faq, portfolioGrid, team, ctaFullscreen, footer, products, lead, model3d, scrollStory.
 Use this component registry as the contract: ${JSON.stringify(input.components)}
 
 User prompt: ${input.prompt}
@@ -54,10 +59,14 @@ Return only valid JSON matching this shape:
 {
   "name": "string",
   "industry": "string",
-  "theme": { "background": "#F8F6F0", "accent": "#D4AF37", "text": "#1a1a1a", "fonts": { "heading": "Playfair Display", "body": "Inter" } },
+  "theme": { "preset": "arcticChrome", "colorSystem": {}, "typography": {}, "depth": {}, "motion": {}, "spacing": {}, "threeD": {} },
   "seo": { "title": "string", "description": "string" },
+  "page": { "title": "string", "description": "string", "favicon": "", "ogImage": "", "themeColor": "#05050A" },
+  "globalFx": { "customCursor": {}, "pageTransition": {}, "smoothScroll": {}, "noiseOverlay": {}, "loadingScreen": {} },
+  "accessibility": { "reducedMotion": true, "focusRing": "#8B5CF6", "skipLink": true, "ariaLabels": true },
+  "performance": { "lazyLoad": true, "imageFormat": "webp", "prefetch": true, "criticalCSS": true },
   "sections": [
-    { "id": "string", "type": "hero|features|gallery|products|lead|model3d|scrollStory", "props": {}, "animation": {}, "metadata": {} }
+    { "id": "string", "type": "hero|hero3D|features|bentoGrid|gallery|marquee|testimonials|comparison|horizontalScroll|stats|process|pricing|faq|portfolioGrid|team|ctaFullscreen|footer|products|lead|model3d|scrollStory", "props": {}, "animation": { "preset": "luxury-reveal", "entrance": {}, "scroll": {}, "hover": {}, "background": {}, "textFx": {} }, "metadata": {} }
   ]
 }`
         }]
@@ -72,6 +81,10 @@ Return only valid JSON matching this shape:
           industry: { type: Type.STRING },
           theme: { type: Type.OBJECT },
           seo: { type: Type.OBJECT },
+          page: { type: Type.OBJECT },
+          globalFx: { type: Type.OBJECT },
+          accessibility: { type: Type.OBJECT },
+          performance: { type: Type.OBJECT },
           sections: {
             type: Type.ARRAY,
             items: {
@@ -105,7 +118,7 @@ export async function generateCodeWithGemini(input: { website: unknown }) {
     model: process.env.GEMINI_CODE_MODEL || "gemini-2.5-pro",
     contents: [{
       role: "user",
-      parts: [{ text: `Generate production-quality exported static HTML for this website JSON. Requirements: inline CSS, responsive, premium cream/gold/charcoal design, accessible semantic HTML, no external network dependencies. Return only the full HTML document.\n\nWebsite JSON:\n${JSON.stringify(input.website)}` }]
+      parts: [{ text: `Generate production-quality exported static HTML for this website JSON. Requirements: inline CSS, responsive, dark cinematic violet/cyan design, accessible semantic HTML, no external network dependencies. Return only the full HTML document.\n\nWebsite JSON:\n${JSON.stringify(input.website)}` }]
     }]
   });
   const text = response.text;
@@ -119,7 +132,7 @@ export async function generateImageWithGemini(input: { prompt: string }) {
 
   const response = await ai.models.generateContent({
     model: process.env.GEMINI_IMAGE_MODEL || "gemini-2.5-flash-image-preview",
-    contents: [{ role: "user", parts: [{ text: `Create a premium website visual asset. Style: luxury editorial, cream background, subtle champagne gold light, Apple/Webflow polish. Prompt: ${input.prompt}` }] }]
+    contents: [{ role: "user", parts: [{ text: `Create a premium website visual asset. Style: dark cinematic editorial, violet/cyan glow, subtle film grain, high-end product launch polish. Prompt: ${input.prompt}` }] }]
   });
 
   const candidates = response.candidates || [];

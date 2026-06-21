@@ -18,7 +18,8 @@ export default async function BuilderPage() {
       orderBy: { updatedAt: "desc" }
     });
     const dbDefinitions = await prisma.componentDefinition.findMany({ where: { isActive: true }, orderBy: { category: "asc" } });
-    const definitions = dbDefinitions.length > 0 ? dbDefinitions : componentDefinitions;
+    const dbByType = new Map(dbDefinitions.map((definition) => [definition.type, definition]));
+    const definitions = componentDefinitions.map((definition) => dbByType.get(definition.type) || definition);
     return <AppShell>{!website || !website.pages[0] ? <EmptyState title="Create a DB-backed website first" body="The builder reads page JSON, products and component metadata from the database/API layer." /> : <VisualBuilder website={{ id: website.id, name: website.name, slug: website.slug, theme: website.theme }} page={{ id: website.pages[0].id, title: website.pages[0].title, sections: website.pages[0].sections as any[] }} products={website.products} assets={website.assets} definitions={definitions as any} />}</AppShell>;
   } catch (error) {
     console.error("Builder load failed", error);

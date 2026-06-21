@@ -1164,3 +1164,85 @@ GET  /api/generation-jobs/:jobId/stream
 POST /api/generation-jobs/:jobId/retry
 POST /api/generation-jobs/:jobId/steps/:stepName/retry
 ```
+
+## Premium template schema upgrade
+
+The builder now supports a richer $10K-template style metadata contract.
+
+### Added premium schema foundation
+
+```txt
+lib/premium-schema.ts
+```
+
+Includes:
+
+- five premium color systems: Arctic Chrome, Obsidian Gold, Ember Dark, Rose Noir, Malachite
+- layered colorSystem tokens
+- typography roles and scale
+- depth/shadow/blur tokens
+- full motion contract
+- page/global effects metadata
+- accessibility metadata
+- performance metadata
+
+### Added premium section registry
+
+The component registry now supports:
+
+```txt
+hero
+hero3D
+features
+bentoGrid
+gallery
+marquee
+testimonials
+comparison
+horizontalScroll
+stats
+process
+pricing
+faq
+portfolioGrid
+team
+ctaFullscreen
+footer
+products
+lead
+model3d
+scrollStory
+```
+
+### Animation contract
+
+Sections now default to a richer animation contract:
+
+```txt
+preset
+entrance
+scroll
+hover
+background
+textFx
+```
+
+### Gemini contract updated
+
+Gemini generation now asks for:
+
+- rich theme object
+- page metadata
+- globalFx
+- accessibility
+- performance
+- premium section types
+- richer animation contracts
+
+### Renderer fallback
+
+Published sites and the builder now include premium fallback renderers/editors for newly added section types, so rich templates render immediately even before each section has a fully custom inspector.
+
+### Registry/database merge
+
+The builder now merges database component definitions with the in-code premium registry. This means older seeded databases still show the new premium section types without needing immediate reseeding.

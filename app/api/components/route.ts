@@ -6,8 +6,7 @@ import { componentDefinitions } from "@/lib/component-registry";
 
 export async function GET() {
   const definitions = await prisma.componentDefinition.findMany({ where: { isActive: true }, orderBy: { category: "asc" } });
-  if (definitions.length === 0) {
-    return NextResponse.json({ data: componentDefinitions, source: "registry" });
-  }
-  return NextResponse.json({ data: definitions, source: "database" });
+  const dbByType = new Map(definitions.map((definition) => [definition.type, definition]));
+  const merged = componentDefinitions.map((definition) => dbByType.get(definition.type) || definition);
+  return NextResponse.json({ data: merged, source: definitions.length ? "database+registry" : "registry" });
 }
