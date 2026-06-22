@@ -5,6 +5,7 @@ import { ButtonLink } from "@/components/ui/Button";
 const groups = [
   { title: "Build", items: [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/create", label: "Create", icon: Sparkles },
     { href: "/studio", label: "Puck Studio", icon: Blocks },
     { href: "/builder", label: "Legacy Builder", icon: Blocks },
     { href: "/assets", label: "Media", icon: Images },
@@ -18,6 +19,7 @@ const groups = [
   ]},
   { title: "Growth", items: [
     { href: "/seo", label: "SEO", icon: Search },
+    { href: "/publish", label: "Publish", icon: Globe2 },
     { href: "/ab-tests", label: "A/B Tests", icon: FlaskConical },
     { href: "/analytics", label: "Analytics", icon: BarChart3 }
   ]},
