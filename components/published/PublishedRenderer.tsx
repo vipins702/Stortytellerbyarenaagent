@@ -2,6 +2,10 @@ import { LeadCaptureForm } from "@/components/published/LeadCaptureForm";
 import { AddToCartButton, StorefrontCart } from "@/components/commerce/StorefrontCart";
 import { ModelViewer } from "@/components/published/ModelViewer";
 import { ScrollProgress } from "@/components/published/ScrollProgress";
+import { Hero3DRenderer } from "@/components/renderers/Hero3DRenderer";
+import { BentoGridRenderer } from "@/components/renderers/BentoGridRenderer";
+import { MarqueeRenderer } from "@/components/renderers/MarqueeRenderer";
+import { StatsRenderer } from "@/components/renderers/StatsRenderer";
 type Section = { id: string; type: string; props: Record<string, any>; animation?: Record<string, any>; metadata?: Record<string, any> };
 type Product = { id: string; name: string; price: number; stock: number; metadata?: any };
 type Asset = { id: string; url: string; type: string; filename: string };
@@ -16,14 +20,18 @@ export function PublishedRenderer({ website, page, products, assets }: { website
           <a href="#contact" className="rounded-full bg-[#1a1a1a] px-5 py-2 text-sm font-bold text-white">Contact</a>
         </div>
       </header>
-      {(page.sections || []).map((section) => <PublishedSection key={section.id} slug={website.slug} websiteId={website.id} section={section} products={products} assets={assets} />)}
+      {(page.sections || []).map((section) => <PublishedSection key={section.id} slug={website.slug} websiteId={website.id} section={section} products={products} assets={assets} theme={website.theme} />)}
       <footer className="border-t border-black/10 px-5 py-10 text-center text-sm text-black/50">Published with Aurelia AI</footer>
     <StorefrontCart slug={website.slug} products={products as any} /></main>
   );
 }
 
-function PublishedSection({ slug, websiteId, section, products, assets }: { slug: string; websiteId: string; section: Section; products: Product[]; assets: Asset[] }) {
+function PublishedSection({ slug, websiteId, section, products, assets, theme }: { slug: string; websiteId: string; section: Section; products: Product[]; assets: Asset[]; theme?: any }) {
   const p = section.props || {};
+  if (section.type === "hero3D") return <Hero3DRenderer props={p} animation={section.animation} theme={theme} />;
+  if (section.type === "bentoGrid") return <BentoGridRenderer props={p} theme={theme} />;
+  if (section.type === "marquee") return <MarqueeRenderer props={p} theme={theme} />;
+  if (section.type === "stats") return <StatsRenderer props={p} theme={theme} />;
   if (section.type === "hero") {
     const heroImage = assets.find((asset) => asset.type.startsWith("image/"));
     return <section className="relative overflow-hidden px-5 py-24"><div className="absolute right-10 top-10 h-72 w-72 rounded-full bg-[#D4AF37]/20 blur-2xl"/><div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[1.05fr_.95fr]"><div><span className="rounded-full border border-[#D4AF37]/30 bg-white/60 px-3 py-1 text-xs font-black uppercase tracking-widest text-[#7a5b12]">{p.eyebrow || "Premium"}</span><h1 className="mt-6 font-serif text-6xl font-black leading-[.92] tracking-[-.06em] md:text-8xl">{p.title}</h1><p className="mt-6 max-w-2xl text-lg leading-8 text-black/60">{p.body}</p><a href="#products" className="mt-8 inline-flex rounded-full bg-gradient-to-br from-[#D4AF37] to-[#92701c] px-6 py-3 font-bold text-white shadow-2xl">{p.cta || "Explore"}</a></div><div className="overflow-hidden rounded-[2rem] border border-black/10 bg-white/60 p-4 shadow-2xl">{heroImage ? <img src={heroImage.url} alt={heroImage.filename} className="h-[420px] w-full rounded-[1.5rem] object-cover"/> : <div className="h-[420px] rounded-[1.5rem] bg-gradient-to-br from-white via-[#eadfc9] to-[#D4AF37]"/>}</div></div></section>;
