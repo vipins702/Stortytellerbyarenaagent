@@ -1246,3 +1246,47 @@ Published sites and the builder now include premium fallback renderers/editors f
 ### Registry/database merge
 
 The builder now merges database component definitions with the in-code premium registry. This means older seeded databases still show the new premium section types without needing immediate reseeding.
+
+## Puck Studio builder integration
+
+Added a new premium React-based builder route:
+
+```txt
+/studio
+```
+
+This uses:
+
+```txt
+@measured/puck
+```
+
+The Studio provides a more structured visual editor than the legacy metadata builder. It includes a premium component set:
+
+- Hero3D
+- BentoGrid
+- Marquee
+- Stats
+- Pricing
+- FAQ
+- ScrollStory
+- ProductGrid
+- CTA
+- Footer
+
+The Puck editor saves back into the existing `Page.sections` JSON by converting Puck data into the metadata section format used by the published renderer.
+
+The older builder remains available at:
+
+```txt
+/builder
+```
+
+The workspace sidebar now shows:
+
+```txt
+Puck Studio
+Legacy Builder
+```
+
+Recommendation: use `/studio` as the primary editor going forward and keep `/builder` as a fallback while migrating advanced controls.

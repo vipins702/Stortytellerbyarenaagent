@@ -5,7 +5,8 @@ import { ButtonLink } from "@/components/ui/Button";
 const groups = [
   { title: "Build", items: [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/builder", label: "Studio", icon: Blocks },
+    { href: "/studio", label: "Puck Studio", icon: Blocks },
+    { href: "/builder", label: "Legacy Builder", icon: Blocks },
     { href: "/assets", label: "Media", icon: Images },
     { href: "/generations", label: "Generations", icon: Bot }
   ]},

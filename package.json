@@ -17,6 +17,7 @@
   "dependencies": {
     "@clerk/nextjs": "^6.31.10",
     "@google/genai": "^2.9.0",
+    "@measured/puck": "^0.20.2",
     "@prisma/client": "^5.22.0",
     "@react-three/drei": "^9.120.4",
     "@react-three/fiber": "^8.17.10",
