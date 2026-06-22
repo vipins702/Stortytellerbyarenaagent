@@ -1,0 +1,14 @@
+import Link from "next/link";
+import { Badge, Card } from "@/components/ui/Card";
+import { ButtonLink } from "@/components/ui/Button";
+import { premiumTemplates } from "@/lib/premium-templates";
+
+export function LibraryHub({ data }: { data: { assets: number; products: number; templates: number; websiteName?: string } }) {
+  const modules = [
+    { title: "Templates", href: "/templates", count: data.templates, body: "Premium launch systems, page DNA and section stacks.", cta: "Browse templates" },
+    { title: "Media", href: "/assets", count: data.assets, body: "Uploaded images, videos, generated visuals and 3D models.", cta: "Open media" },
+    { title: "Products", href: "/cms/products", count: data.products, body: "Products, variants, images, pricing and storefront inventory.", cta: "Manage products" },
+    { title: "Brand Kit", href: "/seo", count: 5, body: "Color systems, search presence, page metadata and launch polish.", cta: "Tune brand" }
+  ];
+  return <div className="mx-auto max-w-[1600px] px-5 py-8"><div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><Badge>Library</Badge><h1 className="mt-4 max-w-4xl text-6xl font-black leading-[.9] tracking-[-.075em]">Your creative operating system.</h1><p className="mt-5 max-w-2xl text-white/55">Keep templates, media, products and brand settings in one place so the Studio stays focused.</p></div><ButtonLink href="/create" variant="gold">Create new story</ButtonLink></div><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">{modules.map((m) => <Card key={m.title} className="p-6"><div className="flex items-start justify-between"><h2 className="text-2xl font-black">{m.title}</h2><span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-black text-white/50">{m.count}</span></div><p className="mt-4 min-h-20 leading-7 text-white/55">{m.body}</p><Link href={m.href} className="mt-6 inline-flex rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-black hover:bg-white/15">{m.cta}</Link></Card>)}</div><section className="mt-8"><div className="mb-4 flex items-center justify-between"><h2 className="text-3xl font-black tracking-[-.05em]">Featured template DNA</h2><ButtonLink href="/templates" variant="light">View all</ButtonLink></div><div className="grid gap-4 md:grid-cols-4">{premiumTemplates.slice(0, 4).map((t) => <Link key={t.slug} href={`/templates/${t.slug}`} className="group overflow-hidden rounded-[2rem] border border-white/10 bg-white/[.05]"><div className={`h-36 bg-gradient-to-br ${t.preview.gradient} transition group-hover:scale-[1.03]`} /><div className="p-4"><Badge>{t.industry}</Badge><h3 className="mt-3 font-black">{t.name}</h3><p className="mt-1 line-clamp-2 text-sm text-white/45">{t.description}</p></div></Link>)}</div></section></div>;
+}
