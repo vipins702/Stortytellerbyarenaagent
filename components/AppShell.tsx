@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { Blocks, Library, Rocket, Sparkles } from "lucide-react";
+import { Blocks, Library, PenTool, Rocket, Sparkles } from "lucide-react";
 import { ButtonLink } from "@/components/ui/Button";
 
 const nav = [
   { href: "/create", label: "Create", icon: Sparkles, hint: "Generate story" },
+  { href: "/blueprint", label: "Blueprint", icon: PenTool, hint: "Plan the film" },
   { href: "/studio", label: "Studio", icon: Blocks, hint: "Edit visually" },
   { href: "/library", label: "Library", icon: Library, hint: "Media + content" },
   { href: "/launch", label: "Launch", icon: Rocket, hint: "Publish + grow" }
